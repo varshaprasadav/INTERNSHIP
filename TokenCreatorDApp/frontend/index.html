@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Token Creator DApp</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.1/dist/ethers.umd.min.js"></script>
+
+</head>
+
+<body class="bg-slate-100 min-h-screen">
+
+<div class="max-w-4xl mx-auto py-10 px-4">
+
+<div class="bg-white rounded-xl shadow-lg p-8">
+
+<h1 class="text-4xl font-bold text-center text-blue-600 mb-6">
+Token Creator DApp
+</h1>
+
+<p class="text-center text-gray-600 mb-6">
+Create ERC20 Tokens, ERC721 NFTs and ERC1155 NFTs
+</p>
+
+<!-- CONNECT WALLET -->
+
+<div class="text-center mb-8">
+
+<button
+onclick="connectWallet()"
+class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+
+Connect Wallet
+
+</button>
+
+<p
+id="walletAddress"
+class="mt-3 text-gray-700 font-medium">
+</p>
+
+</div>
+
+<!-- TABS -->
+
+<div class="flex justify-center gap-4 flex-wrap">
+
+<button
+onclick="showTab('erc20')"
+class="bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-lg">
+
+ERC20
+
+</button>
+
+<button
+onclick="showTab('erc721')"
+class="bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-lg">
+
+ERC721
+
+</button>
+
+<button
+onclick="showTab('erc1155')"
+class="bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-lg">
+
+ERC1155
+
+</button>
+
+</div>
+
+<!-- ========================= -->
+<!-- ERC20 SECTION -->
+<!-- ========================= -->
+
+<div id="erc20Section" class="mt-8">
+
+<h2 class="text-2xl font-bold mb-4">
+Create ERC20 Token
+</h2>
+
+<input
+id="erc20Name"
+placeholder="Token Name"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+id="erc20Symbol"
+placeholder="Token Symbol"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+id="erc20Supply"
+placeholder="Total Supply"
+class="w-full border rounded-lg p-3 mb-4">
+
+<button
+onclick="createERC20()"
+class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+
+Create ERC20
+
+</button>
+
+</div>
+
+<!-- ========================= -->
+<!-- ERC721 SECTION -->
+<!-- ========================= -->
+
+<div id="erc721Section" class="hidden mt-8">
+
+<h2 class="text-2xl font-bold mb-4">
+Create ERC721 NFT
+</h2>
+
+<input
+id="erc721Name"
+placeholder="Collection Name"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+id="erc721Symbol"
+placeholder="Collection Symbol"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+type="file"
+id="erc721Image"
+accept="image/*"
+onchange="preview721(event)"
+class="w-full border rounded-lg p-3 mb-3">
+
+<img
+id="preview721"
+class="hidden w-full rounded-lg border mb-4">
+
+<button
+onclick="createERC721()"
+class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+
+Create ERC721 NFT
+
+</button>
+
+</div>
+
+<!-- ========================= -->
+<!-- ERC1155 SECTION -->
+<!-- ========================= -->
+
+<div id="erc1155Section" class="hidden mt-8">
+
+<h2 class="text-2xl font-bold mb-4">
+Create ERC1155 NFT
+</h2>
+
+<input
+id="erc1155To"
+placeholder="Recipient Address"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+id="erc1155Id"
+placeholder="Token ID"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+id="erc1155Amount"
+placeholder="Amount"
+class="w-full border rounded-lg p-3 mb-3">
+
+<input
+type="file"
+id="erc1155Image"
+accept="image/*"
+onchange="preview1155(event)"
+class="w-full border rounded-lg p-3 mb-3">
+
+<img
+id="preview1155"
+class="hidden w-full rounded-lg border mb-4">
+
+<button
+onclick="createERC1155()"
+class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+
+Mint ERC1155 NFT
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
