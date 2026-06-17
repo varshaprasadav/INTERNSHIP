@@ -1,25 +1,16 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import "./MyNFT.sol";
 
 contract ERC721Factory {
 
-    event NFTCreated(address nftAddress);
+    event NFTCreated(address nftAddress, address owner);
 
-    function createNFT(
-        string memory name,
-        string memory symbol,
-        string memory tokenURI
-    ) public returns(address) {
+    function createNFT() public returns (address) {
+        MyNFT nft = new MyNFT();
 
-        MyNFT nft = new MyNFT(
-            name,
-            symbol,
-            msg.sender,
-            tokenURI
-        );
-
-        emit NFTCreated(address(nft));
+        emit NFTCreated(address(nft), msg.sender);
 
         return address(nft);
     }

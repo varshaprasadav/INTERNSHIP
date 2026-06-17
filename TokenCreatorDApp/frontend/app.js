@@ -4,9 +4,8 @@
 
 const ERC20_FACTORY =
 "0xd8bD34C7444F728B9A963fFacdC0577d6F33c4F0";
+const ERC721_ADDRESS = "0x14E9FE24a0462f54dbEdA69E9c033b32e4808ea6";
 
-const ERC721_FACTORY =
-"0x7bad39068C5f121b95c8705C788fE9baEe9d6a39";
 
 const ERC1155_ADDRESS =
 "0x310C90c6feA2A64a0447AdE8f692a48b9e849197";
@@ -26,7 +25,8 @@ const ERC20_ABI = [
 ];
 
 const ERC721_ABI = [
-"function createNFT(string name,string symbol,string tokenURI) returns(address)"
+  "function mint(address to,string tokenURI) returns(uint256)",
+  "function ownerOf(uint256 tokenId) view returns(address)"
 ];
 
 const ERC1155_ABI = [
@@ -102,24 +102,26 @@ function showTab(tab) {
         .classList.remove("hidden");
 }
 
+
 // ==========================
-// IMAGE PREVIEW ERC721
+// IMAGE PREVIEW
 // ==========================
+function preview721(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-function preview721(event) {
+  const img = document.getElementById("preview721");
+  img.src = URL.createObjectURL(file);
+  img.classList.remove("hidden");
+}
 
-    const file =
-        event.target.files[0];
+function preview1155(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    if(!file) return;
-
-    const img =
-        document.getElementById("preview721");
-
-    img.src =
-        URL.createObjectURL(file);
-
-    img.classList.remove("hidden");
+  const img = document.getElementById("preview1155");
+  img.src = URL.createObjectURL(file);
+  img.classList.remove("hidden");
 }
 
 // ==========================
@@ -140,84 +142,74 @@ function preview1155(event) {
         URL.createObjectURL(file);
 
     img.classList.remove("hidden");
-}
-
-// ==========================
+}// ==========================
 // PINATA IMAGE UPLOAD
 // ==========================
-
 async function uploadImage(file) {
+  try {
+    const form = new FormData();
+    form.append("file", file);
 
-    const formData =
-        new FormData();
-
-    formData.append(
-        "file",
-        file
+    const res = await fetch(
+      "https://api.pinata.cloud/pinning/pinFileToIPFS",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${PINATA_JWT}`
+        },
+        body: form
+      }
     );
 
-    const response =
-        await fetch(
-            "https://api.pinata.cloud/pinning/pinFileToIPFS",
-            {
-                method: "POST",
-                headers: {
-                    Authorization:
-                    `Bearer ${PINATA_JWT}`
-                },
-                body: formData
-            }
-        );
+    const data = await res.json();
 
-    const data =
-        await response.json();
+    if (!data.IpfsHash) {
+      throw new Error("Image upload failed");
+    }
 
-    return `ipfs://${data.IpfsHash}`;
+    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+  } catch (err) {
+    console.error("Pinata image error:", err);
+    throw err;
+  }
 }
 
 // ==========================
-// METADATA UPLOAD
+// PINATA METADATA UPLOAD
 // ==========================
+async function uploadMetadata(name, imageURL) {
+  try {
+    if (!imageURL) throw new Error("Image missing");
 
-async function uploadMetadata(
-    name,
-    imageCID
-) {
-
-    const metadata = {
-
-        name: name,
-
-        description:
-        "Created from Token Creator DApp",
-
-        image: imageCID
+    const meta = {
+      name,
+      description: "NFT from DApp",
+      image: imageURL
     };
 
-    const response =
-        await fetch(
-            "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-            {
-                method: "POST",
+    const res = await fetch(
+      "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${PINATA_JWT}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(meta)
+      }
+    );
 
-                headers: {
+    const data = await res.json();
 
-                    Authorization:
-                    `Bearer ${PINATA_JWT}`,
+    if (!data.IpfsHash) {
+      throw new Error("Metadata upload failed");
+    }
 
-                    "Content-Type":
-                    "application/json"
-                },
-
-                body:
-                JSON.stringify(metadata)
-            }
-        );
-
-    const data =
-        await response.json();
-
-    return `ipfs://${data.IpfsHash}`;
+    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+  } catch (err) {
+    console.error("Pinata metadata error:", err);
+    throw err;
+  }
 }
 
 // ==========================
@@ -339,84 +331,41 @@ async function createERC20() {
 // ==========================
 
 async function createERC721() {
+  try {
+    if (!signer) return alert("Connect wallet first");
 
-    try {
+    const name = document.getElementById("erc721Name").value;
+    const symbol = document.getElementById("erc721Symbol").value;
+    const file = document.getElementById("erc721Image").files[0];
 
-        const name =
-            document.getElementById(
-                "erc721Name"
-            ).value;
+    if (!file) return alert("Select image");
 
-        const symbol =
-            document.getElementById(
-                "erc721Symbol"
-            ).value;
+    alert("Uploading image...");
+    const imageURL = await uploadImage(file);
 
-        const file =
-            document.getElementById(
-                "erc721Image"
-            ).files[0];
+    alert("Uploading metadata...");
+    const tokenURI = await uploadMetadata(name, imageURL);
 
-        if(!file) {
+   const contract = new ethers.Contract(
+  ERC721_ADDRESS,
+  ERC721_ABI,
+  signer
+);
 
-            alert(
-                "Select Image"
-            );
+const tx = await contract.mint(
+  await signer.getAddress(),
+  tokenURI
+);
 
-            return;
-        }
+    await tx.wait();
 
-        alert(
-            "Uploading Image..."
-        );
+    alert("NFT Minted Successfully 🎉");
 
-        const imageCID =
-            await uploadImage(file);
-
-        alert(
-            "Creating Metadata..."
-        );
-
-        const tokenURI =
-            await uploadMetadata(
-                name,
-                imageCID
-            );
-
-        const contract =
-            new ethers.Contract(
-                ERC721_FACTORY,
-                ERC721_ABI,
-                signer
-            );
-
-        const tx =
-            await contract.createNFT(
-                name,
-                symbol,
-                tokenURI
-            );
-
-        alert(
-            "Creating NFT..."
-        );
-
-        await tx.wait();
-
-        alert(
-            "ERC721 NFT Created"
-        );
-
-    } catch(err) {
-
-        console.error(err);
-
-        alert(
-            "ERC721 Creation Failed"
-        );
-    }
+  } catch (err) {
+    console.error("ERC721 error:", err);
+    alert("NFT creation failed");
+  }
 }
-
 // ==========================
 // CREATE ERC1155
 // ==========================
