@@ -14,7 +14,7 @@ Token Creator DApp is a decentralized application that allows users to create an
 
 The system enables users to create fungible tokens, unique NFTs, and multi-copy NFTs without directly interacting with smart contract code.
 
-
+---
 
 # Features
 
@@ -42,7 +42,7 @@ The system enables users to create fungible tokens, unique NFTs, and multi-copy 
 * Specify token ID and amount
 * Mint tokens to any wallet address
 
-
+---
 
 # Technology Stack
 
@@ -68,6 +68,7 @@ The system enables users to create fungible tokens, unique NFTs, and multi-copy 
 * Pinata
 * IPFS
 
+---
 
 # Prerequisites
 
@@ -99,7 +100,7 @@ Create a free account and generate a JWT API key.
 
 https://pinata.cloud
 
-
+---
 
 # Dependencies
 
@@ -117,7 +118,7 @@ npm install @openzeppelin/contracts
 npm install hardhat
 ```
 
-
+---
 
 # Smart Contracts
 
@@ -131,7 +132,7 @@ Responsible for creating ERC20 tokens and minting initial supply.
 
 Factory contract used to deploy new ERC20 token contracts.
 
-
+---
 
 ## ERC721
 
@@ -143,7 +144,7 @@ Responsible for minting ERC721 NFTs and storing metadata URI.
 
 Factory contract used to deploy ERC721 NFT collections.
 
-
+---
 
 ## ERC1155
 
@@ -151,7 +152,7 @@ Factory contract used to deploy ERC721 NFT collections.
 
 Responsible for minting ERC1155 tokens with multiple copies.
 
-
+---
 
 # Installation Instructions
 
@@ -167,7 +168,7 @@ Move into project folder:
 cd token-creator
 ```
 
-
+---
 
 ## Install Dependencies
 
@@ -175,7 +176,7 @@ cd token-creator
 npm install
 ```
 
-
+---
 
 # Configuration
 
@@ -197,16 +198,15 @@ with your Pinata JWT key.
 
 Update deployed contract addresses in app.js:
 
-
 ```javascript
-const ERC20_FACTORY = "YOUR_ERC20_FACTORY_ADDRESS";
+const ERC20_FACTORY = "0xd8bD34C7444F728B9A963fFacdC0577d6F33c4F0";
 
-const ERC721_ADDRESS = "YOUR_ERC721_CONTRACT_ADDRESS";
+const ERC721_ADDRESS = "0x14E9FE24a0462f54dbEdA69E9c033b32e4808ea6";
 
-const ERC1155_ADDRESS = "YOUR_ERC1155_CONTRACT_ADDRESS";
+const ERC1155_ADDRESS = "0x310C90c6feA2A64a0447AdE8f692a48b9e849197";
 ```
 
-
+---
 
 # Deploy Smart Contracts
 
@@ -219,25 +219,25 @@ const ERC1155_ADDRESS = "YOUR_ERC1155_CONTRACT_ADDRESS";
 5. Copy deployed contract addresses
 6. Paste addresses into app.js
 
+---
 
 # Running the Application
 
 If using Live Server:
 
-bash
-
+```bash
 npx live-server
+```
 
 or open:
 
-bash
-
+```bash
 index.html
-
+```
 
 in a browser.
 
-
+---
 
 # Usage Guidelines
 
@@ -247,7 +247,7 @@ in a browser.
 2. Click "Connect Wallet"
 3. Approve MetaMask connection
 
-
+---
 
 ## Create ERC20 Token
 
@@ -259,6 +259,7 @@ in a browser.
 6. Confirm MetaMask transaction
 7. Token contract is created
 
+---
 
 ## Create ERC721 NFT
 
@@ -324,7 +325,7 @@ The application follows these steps:
 * Transfer tokens
 * Check metadata URI
 
-
+---
 
 # Security Considerations
 
@@ -333,7 +334,7 @@ The application follows these steps:
 * Verify contract addresses before deployment.
 * Use test networks before mainnet deployment.
 
-
+---
 
 # Future Enhancements
 
@@ -345,7 +346,7 @@ The application follows these steps:
 * Admin Dashboard
 * Multi-Chain Support
 
-
+---
 
 # Author
 
