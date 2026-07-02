@@ -453,17 +453,7 @@ try {
     const imageURL =
         await uploadImage(file);
 
-    // ==============================
-    // Upload Metadata
-    // ==============================
-
-    alert("Uploading Metadata...");
-
-    const tokenURI =
-        await uploadMetadata(
-            collectionName,
-            imageURL
-        );
+ 
 
     // ==============================
     // Mint NFT
@@ -523,11 +513,7 @@ try {
         .innerText =
         ERC721_ADDRESS;
 
-    document
-        .getElementById("metadataURI")
-        .innerHTML =
-        `<a href="${tokenURI}" target="_blank" class="text-blue-600 underline">Open Metadata</a>`;
-
+   
     document
         .getElementById("mintedImage")
         .src =
