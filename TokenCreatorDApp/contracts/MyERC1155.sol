@@ -13,9 +13,12 @@ contract MyERC1155 is ERC1155 {
 
     mapping(uint256 => uint256) public totalSupply;
 
+    // Token ID => Image Hash
+    mapping(uint256 => bytes32) private imageHashes;
+
     // Image Hash => Token ID + 1
     // (0 means image not used)
-    mapping(bytes32 => uint256) public imageToToken;
+    mapping(bytes32 => uint256) private imageToToken;
 
     constructor() ERC1155("") {}
 
@@ -31,52 +34,38 @@ contract MyERC1155 is ERC1155 {
         bytes32 imageHash
     ) public {
 
-        // --------------------------
-        // New Token ID
-        // --------------------------
+        // -------------------------
+        // NEW TOKEN ID
+        // -------------------------
 
-        if(bytes(tokenURIs[id]).length == 0){
-
-            // Same image cannot belong
-            // to another Token ID
+        if (!exists(id)) {
 
             require(
-
                 imageToToken[imageHash] == 0,
-
                 "Image already belongs to another Token ID"
-
             );
 
             tokenURIs[id] = _uri;
-
+            imageHashes[id] = imageHash;
             imageToToken[imageHash] = id + 1;
-
         }
 
-        // --------------------------
-        // Existing Token ID
-        // --------------------------
+        // -------------------------
+        // EXISTING TOKEN ID
+        // -------------------------
 
-        else{
+        else {
 
             require(
-
                 keccak256(bytes(tokenURIs[id])) ==
                 keccak256(bytes(_uri)),
-
                 "Metadata mismatch"
-
             );
 
             require(
-
-                imageToToken[imageHash] == id + 1,
-
+                imageHashes[id] == imageHash,
                 "Wrong image for this Token ID"
-
             );
-
         }
 
         _mint(
@@ -99,7 +88,7 @@ contract MyERC1155 is ERC1155 {
         public
         view
         override
-        returns(string memory)
+        returns (string memory)
     {
         return tokenURIs[id];
     }
@@ -113,13 +102,13 @@ contract MyERC1155 is ERC1155 {
     )
         public
         view
-        returns(uint256)
+        returns (uint256)
     {
         return totalSupply[id];
     }
 
     // ==========================
-    // TOKEN EXISTS
+    // EXISTS
     // ==========================
 
     function exists(
@@ -127,9 +116,42 @@ contract MyERC1155 is ERC1155 {
     )
         public
         view
-        returns(bool)
+        returns (bool)
     {
         return bytes(tokenURIs[id]).length > 0;
+    }
+
+    // ==========================
+    // GET IMAGE HASH
+    // ==========================
+
+    function getImageHash(
+        uint256 id
+    )
+        public
+        view
+        returns (bytes32)
+    {
+        return imageHashes[id];
+    }
+
+    // ==========================
+    // GET TOKEN ID FROM IMAGE
+    // ==========================
+
+    function getTokenIdFromImage(
+        bytes32 imageHash
+    )
+        public
+        view
+        returns (uint256)
+    {
+        require(
+            imageToToken[imageHash] != 0,
+            "Image not found"
+        );
+
+        return imageToToken[imageHash] - 1;
     }
 
 }

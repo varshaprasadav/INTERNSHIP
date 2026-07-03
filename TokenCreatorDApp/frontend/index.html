@@ -325,13 +325,16 @@ class="grid md:grid-cols-3 gap-6">
 
 
 </div>
+
+
+
 <!-- ========================= -->
 <!-- ERC1155 SECTION -->
 <!-- ========================= -->
 
 <div id="erc1155Section" class="hidden mt-8">
 
-    <h2 class="text-2xl font-bold mb-4">
+    <h2 class="text-2xl font-bold mb-6">
         Create ERC1155 NFT
     </h2>
 
@@ -361,6 +364,8 @@ class="grid md:grid-cols-3 gap-6">
         id="preview1155"
         class="hidden w-64 rounded-lg border mb-4">
 
+    <!-- Mint Button -->
+
     <button
         onclick="createERC1155()"
         class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
@@ -369,34 +374,38 @@ class="grid md:grid-cols-3 gap-6">
 
     </button>
 
-   
+    <!-- Gallery Button -->
 
+    <button
+        onclick="toggle1155Gallery()"
+        class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg ml-3">
 
-    <!-- GALLERY BUTTON -->
+        ERC1155 Gallery
 
-    <div class="mt-8">
+    </button>
 
-        <button
-            onclick="toggle1155Gallery()"
-            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg">
-
-            ERC1155 Gallery
-
-        </button>
-
-    </div>
-
-    <!-- GALLERY -->
+    <!-- Gallery -->
 
     <div
         id="gallery1155"
-        class="hidden grid md:grid-cols-3 gap-6 mt-6">
+        class="hidden mt-8">
+
+        <h3 class="text-2xl font-bold mb-4">
+            ERC1155 Gallery
+        </h3>
+
+        <div
+            id="gallery1155Grid"
+            class="grid md:grid-cols-3 gap-6">
+
+        </div>
 
     </div>
 
 </div>
 
 </div>
+
 </div>
 
 <script src="app.js"></script>

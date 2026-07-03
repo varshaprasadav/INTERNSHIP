@@ -8,7 +8,7 @@ const ERC721_ADDRESS = "0xedd330A89D8d1133a19EeaFC9b7CC4505Ff2c898";
 
 
 const ERC1155_ADDRESS =
-"0x83d9F37940b26447c79FD60a58e28B8F335f337E";
+"0x1Bd66491DECF93078e409D26500B91DaBA9C290c";
 
 const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIxODY0MjhmNC0wMWFmLTQ5Y2YtYjAwZS0wYTI5Njc1YjY0YjEiLCJlbWFpbCI6InZhcnNoYXByYXNhZDIwMTlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImZjMzU3ZTM1ZThlMjFkMzBhYjMzIiwic2NvcGVkS2V5U2VjcmV0IjoiNGZlNjQ0MzU0NjhlM2M0ZTdiZWU4MDMyZmFmNzlkMzkyN2M3OWNiNjRlZTRmM2Q1ZWI5NjY5OTFjZjFkZGEzZCIsImV4cCI6MTgxMjc4NTEwMX0.N1O4AlfJS8cf0lnGTjgt1PY60JvB6ivCvWjQ-rj1Lw0";
 
@@ -52,7 +52,9 @@ const ERC721_ABI = [
 ];
 const ERC1155_ABI = [
 
-"function mint(address to,uint256 id,uint256 amount,string tokenURI)",
+"function mint(address to,uint256 id,uint256 amount,string tokenURI,bytes32 imageHash)",
+
+"function getImageHash(uint256 id) view returns(bytes32)",
 
 "function balanceOf(address account,uint256 id) view returns(uint256)",
 
@@ -78,9 +80,12 @@ JSON.parse(
 localStorage.getItem("gallery")
 ) || [];
 
+const ERC1155_STORAGE_KEY =
+`erc1155Gallery_${ERC1155_ADDRESS}`;
+
 let erc1155Gallery =
 JSON.parse(
-localStorage.getItem("erc1155Gallery")
+localStorage.getItem(ERC1155_STORAGE_KEY)
 ) || [];
 
 // ==========================
@@ -183,6 +188,8 @@ function preview1155(event) {
         URL.createObjectURL(file);
 
     img.classList.remove("hidden");
+
+
 }// ==========================
 // PINATA IMAGE UPLOAD
 // ==========================
@@ -590,6 +597,8 @@ try {
 }
 
 }
+
+
 // ==========================
 // LOAD NFT GALLERY
 // ==========================
@@ -655,284 +664,214 @@ function loadGallery() {
     });
 
 }
-
-
-
-
 // ==========================
 // CREATE ERC1155
 // ==========================
-
-
-
 async function createERC1155() {
 
     try {
 
-        const to =
-            document.getElementById("erc1155To").value;
-
-        const id =
-            document.getElementById("erc1155Id").value;
-
-        const amount =
-            document.getElementById("erc1155Amount").value;
-
-        const file =
-            document.getElementById("erc1155Image").files[0];
-
-        if (!to || !id || !amount) {
-
-            alert("Fill all fields");
-
+        if (!signer) {
+            alert("Connect Wallet First");
             return;
         }
 
-        const contract =
-            new ethers.Contract(
-                ERC1155_ADDRESS,
-                ERC1155_ABI,
-                signer
-            );
-
-        // Check whether Token ID already exists
-      const alreadyExists =
-    await contract.exists(id);
-
-let tokenURI = "";
-let imageURL = "";
-
-
-        // New Token ID
-      if (!alreadyExists) {
-
-    if (!file) {
-
-        alert("Select Image");
-
-        return;
-
-    }
-
-    alert("Uploading Image...");
-
-    imageURL =
-        await uploadImage(file);
-
-    alert("Uploading Metadata...");
-
-    tokenURI =
-        await uploadMetadata(
-            `ERC1155 #${id}`,
-            imageURL
-        );
-
-}
-else {
-
-    tokenURI =
-        await contract.uri(id);
-
-    const metadata =
-        await fetch(tokenURI)
-        .then(r => r.json());
-
-    imageURL =
-        metadata.image;
-
-}
-
-        const tx =
-            await contract.mint(
-                to,
-                id,
-                amount,
-                tokenURI
-            );
-
-        alert("Minting NFT...");
-
-        await tx.wait();
-
-        const balance =
-            await contract.balanceOf(
-                to,
-                id
-            );
-
-        const copies =
-            await contract.totalCopies(
-                id
-            );
-
-        document
-            .getElementById("erc1155Card")
-            .classList.remove("hidden");
-
-        document
-            .getElementById("erc1155MintedImage")
-            .src = imageURL;
-
-        document
-            .getElementById("erc1155TokenId")
-            .innerHTML = id;
-
-        document
-            .getElementById("erc1155Copies")
-            .innerHTML = copies.toString();
-
-        document
-            .getElementById("erc1155Balance")
-            .innerHTML = balance.toString();
-
-        document
-            .getElementById("erc1155Owner")
-            .innerHTML = to;
-
-        // Update gallery if Token ID already exists
-      const index =
-erc1155Gallery.findIndex(
-    nft => nft.id == id
-);
-
-if(index == -1){
-
-    erc1155Gallery.push({
-
-        id,
-
-        image:imageURL,
-
-        owner:to
-
-    });
-
-}
-
-        localStorage.setItem(
-
-            "erc1155Gallery",
-
-            JSON.stringify(
-                erc1155Gallery
-            )
-
-        );
-
-        load1155Gallery();
-
-        alert("ERC1155 Minted Successfully");
-
-    }
-
-    catch (err) {
-
-        console.log(err);
-
-        alert("Mint Failed");
-
-    }
-
-}
-
-// ==========================
-// LOAD GALLERY
-// ==========================
-
-window.onload = function () {
-
-    load1155Gallery();
-
-};
-
-function toggle1155Gallery() {
-
-    const gallery =
-        document.getElementById("gallery1155");
-
-    if (gallery.classList.contains("hidden")) {
-
-        gallery.classList.remove("hidden");
-
-        load1155Gallery();
-
-    }
-
-    else {
-
-        gallery.classList.add("hidden");
-
-    }
-
-}
-
-async function load1155Gallery() {
-
-    const gallery =
-        document.getElementById("gallery1155");
-
-    gallery.innerHTML = "";
-
-    if (erc1155Gallery.length == 0) {
-
-        gallery.innerHTML =
-            "<p>No ERC1155 NFTs Minted</p>";
-
-        return;
-
-    }
-
-    const contract =
-        new ethers.Contract(
+        const to = document.getElementById("erc1155To").value.trim();
+        const id = document.getElementById("erc1155Id").value.trim();
+        const amount = document.getElementById("erc1155Amount").value.trim();
+        const file = document.getElementById("erc1155Image").files[0];
+
+        if (!to || !id || !amount) {
+            alert("Fill all fields");
+            return;
+        }
+
+        // CONTRACT (ONLY ONCE)
+        const contract = new ethers.Contract(
             ERC1155_ADDRESS,
             ERC1155_ABI,
             signer
         );
 
-    for (const nft of erc1155Gallery) {
+        const exists = await contract.exists(id);
 
-        const balance =
-            await contract.balanceOf(
-                nft.owner,
-                nft.id
+        let tokenURI = "";
+        let imageURL = "";
+        let imageHash = "";
+
+        // NEW TOKEN
+        if (!exists) {
+
+            if (!file) {
+                alert("Select image");
+                return;
+            }
+
+            const buffer = await file.arrayBuffer();
+
+            const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+
+            imageHash =
+                "0x" +
+                Array.from(new Uint8Array(hashBuffer))
+                .map(x => x.toString(16).padStart(2, "0"))
+                .join("");
+
+            imageURL = await uploadImage(file);
+
+            tokenURI = await uploadMetadata(
+                `ERC1155 #${id}`,
+                imageURL
             );
+        }
 
-        const copies =
-            await contract.totalCopies(
-                nft.id
-            );
+        // EXISTING TOKEN
+        else {
 
-        gallery.innerHTML += `
+            tokenURI = await contract.uri(id);
 
-<div class="border rounded-xl p-4 bg-white shadow">
+            const res = await fetch(tokenURI);
+            const meta = await res.json();
 
-<img
-src="${nft.image}"
-class="w-full h-48 object-cover rounded-lg">
+            imageURL = meta.image || "";
 
-<p class="mt-3">
-<b>Token ID :</b> ${nft.id}
-</p>
+            imageHash = await contract.getImageHash(id);
+        }
 
-<p>
-<b>Total Copies :</b> ${copies}
-</p>
+        // MINT
+        alert("Minting...");
 
-<p>
-<b>Your Balance :</b> ${balance}
-</p>
+        const tx = await contract.mint(
+            to,
+            id,
+            amount,
+            tokenURI,
+            imageHash
+        );
 
-<p class="break-all">
-<b>Owner :</b> ${nft.owner}
-</p>
+        await tx.wait();
 
-</div>
+        // DO NOT redeclare contract again ❌
+        const copies = await contract.totalCopies(id);
+        const balance = await contract.balanceOf(to, id);
 
-`;
+        // SAVE GALLERY
+        const index = erc1155Gallery.findIndex(x => x.id == id);
 
+        if (index === -1) {
+
+            erc1155Gallery.push({
+                id,
+                image: imageURL,
+                owner: to,
+                balance: balance.toString(),
+                copies: copies.toString()
+            });
+
+        } else {
+
+            erc1155Gallery[index].owner = to;
+            erc1155Gallery[index].balance = balance.toString();
+            erc1155Gallery[index].copies = copies.toString();
+
+            if (!erc1155Gallery[index].image) {
+                erc1155Gallery[index].image = imageURL;
+            }
+        }
+
+        localStorage.setItem(
+            ERC1155_STORAGE_KEY,
+            JSON.stringify(erc1155Gallery)
+        );
+
+        load1155Gallery();
+
+        // CLEAR FORM
+        document.getElementById("erc1155To").value = "";
+        document.getElementById("erc1155Id").value = "";
+        document.getElementById("erc1155Amount").value = "";
+        document.getElementById("erc1155Image").value = "";
+
+        const preview = document.getElementById("preview1155");
+        if (preview) {
+            preview.src = "";
+            preview.classList.add("hidden");
+        }
+
+        alert("Mint successful");
+
+    } catch (err) {
+        console.error(err);
+        alert(err.reason || err.message);
+    }
+}
+
+
+
+// ==========================
+// ERC1155 GALLERY
+// ==========================
+async function load1155Gallery() {
+
+    const gallery = document.getElementById("gallery1155Grid");
+    if (!gallery) return;
+
+    gallery.innerHTML = "";
+
+    erc1155Gallery =
+        JSON.parse(localStorage.getItem(ERC1155_STORAGE_KEY)) || [];
+
+    if (erc1155Gallery.length === 0) {
+        gallery.innerHTML = "<p class='text-gray-500'>No NFTs Yet</p>";
+        return;
     }
 
+    const contract = new ethers.Contract(
+        ERC1155_ADDRESS,
+        ERC1155_ABI,
+        signer
+    );
+
+    for (const nft of erc1155Gallery) {
+
+        const copies = await contract.totalCopies(nft.id);
+        const balance = await contract.balanceOf(nft.owner, nft.id);
+
+        gallery.innerHTML += `
+            <div class="border rounded-xl shadow bg-white p-4">
+
+                <img src="${nft.image}" class="w-full h-48 object-cover rounded-lg">
+
+                <h3 class="font-bold mt-3">Token ID: ${nft.id}</h3>
+
+                <p><b>Total Copies:</b> ${copies}</p>
+                <p><b>Your Balance:</b> ${balance}</p>
+
+                <p class="break-all mt-2">
+                    <b>Owner:</b><br>${nft.owner}
+                </p>
+
+            </div>
+        `;
+    }
 }
+
+// ==========================
+// TOGGLE ERC1155 GALLERY
+// ==========================
+
+async function toggle1155Gallery() {
+
+    const gallery = document.getElementById("gallery1155");
+
+    gallery.classList.toggle("hidden");
+
+    if (!gallery.classList.contains("hidden")) {
+        await load1155Gallery();
+    }
+}
+
+
 
 
 // ==========================
@@ -941,7 +880,10 @@ class="w-full h-48 object-cover rounded-lg">
 
 function refreshDApp() {
 
+    // ==========================
     // ERC20
+    // ==========================
+
     const erc20Name = document.getElementById("erc20Name");
     if (erc20Name) erc20Name.value = "";
 
@@ -951,8 +893,10 @@ function refreshDApp() {
     const erc20Supply = document.getElementById("erc20Supply");
     if (erc20Supply) erc20Supply.value = "";
 
-
+    // ==========================
     // ERC721
+    // ==========================
+
     const name = document.getElementById("erc721Name");
     if (name) name.value = "";
 
@@ -963,15 +907,23 @@ function refreshDApp() {
     if (image) image.value = "";
 
     const preview = document.getElementById("preview721");
+
     if (preview) {
+
         preview.src = "";
         preview.classList.add("hidden");
+
     }
 
+    // Hide NFT Card
 
-    // NFT Card
     const card = document.getElementById("nftCard");
-    if (card) card.classList.add("hidden");
+
+    if (card) {
+
+        card.classList.add("hidden");
+
+    }
 
     document.getElementById("collectionName").innerHTML = "";
     document.getElementById("collectionSymbol").innerHTML = "";
@@ -980,10 +932,28 @@ function refreshDApp() {
     document.getElementById("contractAddress").innerHTML = "";
 
     const minted = document.getElementById("mintedImage");
-    if (minted) minted.src = "";
 
+    if (minted) {
 
+        minted.src = "";
+
+    }
+
+    // Hide ERC721 Gallery
+
+    const gallerySection =
+        document.getElementById("gallerySection");
+
+    if (gallerySection) {
+
+        gallerySection.classList.add("hidden");
+
+    }
+
+    // ==========================
     // ERC1155
+    // ==========================
+
     const to = document.getElementById("erc1155To");
     if (to) to.value = "";
 
@@ -996,25 +966,32 @@ function refreshDApp() {
     const img1155 = document.getElementById("erc1155Image");
     if (img1155) img1155.value = "";
 
-  const preview1155 = document.getElementById("preview1155");
+    const preview1155 =
+        document.getElementById("preview1155");
 
-if (preview1155) {
+    if (preview1155) {
 
-    preview1155.src = "";
+        preview1155.src = "";
+        preview1155.classList.add("hidden");
 
-    preview1155.classList.add("hidden");
+    }
+
+    // Hide ERC1155 Gallery
+
+    const gallery1155 =
+        document.getElementById("gallery1155");
+
+    if (gallery1155) {
+
+        gallery1155.classList.add("hidden");
+
+    }
 
 }
+window.onload = async function () {
 
-// Hide Gallery
+    loadGallery();
 
-const gallerySection =
-document.getElementById("gallerySection");
+    await load1155Gallery();
 
-if(gallerySection){
-
-gallerySection.classList.add("hidden");
-
-}
-
-}
+};
