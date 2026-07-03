@@ -8,7 +8,7 @@ const ERC721_ADDRESS = "0xedd330A89D8d1133a19EeaFC9b7CC4505Ff2c898";
 
 
 const ERC1155_ADDRESS =
-"0x4660BAfedE69C12F02bD472d6529c4828FBaC5f7";
+"0x83d9F37940b26447c79FD60a58e28B8F335f337E";
 
 const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIxODY0MjhmNC0wMWFmLTQ5Y2YtYjAwZS0wYTI5Njc1YjY0YjEiLCJlbWFpbCI6InZhcnNoYXByYXNhZDIwMTlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImZjMzU3ZTM1ZThlMjFkMzBhYjMzIiwic2NvcGVkS2V5U2VjcmV0IjoiNGZlNjQ0MzU0NjhlM2M0ZTdiZWU4MDMyZmFmNzlkMzkyN2M3OWNiNjRlZTRmM2Q1ZWI5NjY5OTFjZjFkZGEzZCIsImV4cCI6MTgxMjc4NTEwMX0.N1O4AlfJS8cf0lnGTjgt1PY60JvB6ivCvWjQ-rj1Lw0";
 
@@ -59,6 +59,8 @@ const ERC1155_ABI = [
 "function totalCopies(uint256 id) view returns(uint256)",
 
 "function uri(uint256 id) view returns(string)",
+
+"function exists(uint256 id) view returns(bool)",
 
 "function safeTransferFrom(address from,address to,uint256 id,uint256 amount,bytes data)"
 
@@ -654,6 +656,9 @@ function loadGallery() {
 
 }
 
+
+
+
 // ==========================
 // CREATE ERC1155
 // ==========================
@@ -691,72 +696,51 @@ async function createERC1155() {
             );
 
         // Check whether Token ID already exists
-        let tokenURI = "";
+      const alreadyExists =
+    await contract.exists(id);
 
-        try {
+let tokenURI = "";
+let imageURL = "";
 
-            tokenURI =
-                await contract.uri(id);
-
-        } catch {
-
-            tokenURI = "";
-
-        }
-
-        let imageURL = "";
 
         // New Token ID
-        if (!tokenURI || tokenURI == "") {
+      if (!alreadyExists) {
 
-            if (!file) {
+    if (!file) {
 
-                alert("Select Image");
+        alert("Select Image");
 
-                return;
+        return;
 
-            }
+    }
 
-            alert("Uploading Image...");
+    alert("Uploading Image...");
 
-            const imageCID =
-                await uploadImage(file);
+    imageURL =
+        await uploadImage(file);
 
-            imageURL =
-                imageCID.replace(
-                    "ipfs://",
-                    "https://gateway.pinata.cloud/ipfs/"
-                );
+    alert("Uploading Metadata...");
 
-            alert("Uploading Metadata...");
+    tokenURI =
+        await uploadMetadata(
+            `ERC1155 #${id}`,
+            imageURL
+        );
 
-            tokenURI =
-                await uploadMetadata(
-                    `ERC1155 #${id}`,
-                    imageCID
-                );
+}
+else {
 
-        }
+    tokenURI =
+        await contract.uri(id);
 
-        // Existing Token ID
-        else {
+    const metadata =
+        await fetch(tokenURI)
+        .then(r => r.json());
 
-            const metadataURL =
-                tokenURI.replace(
-                    "ipfs://",
-                    "https://gateway.pinata.cloud/ipfs/"
-                );
+    imageURL =
+        metadata.image;
 
-            const metadata =
-                await fetch(metadataURL).then(r => r.json());
-
-            imageURL =
-                metadata.image.replace(
-                    "ipfs://",
-                    "https://gateway.pinata.cloud/ipfs/"
-                );
-
-        }
+}
 
         const tx =
             await contract.mint(
@@ -806,28 +790,24 @@ async function createERC1155() {
             .innerHTML = to;
 
         // Update gallery if Token ID already exists
-        const index =
-            erc1155Gallery.findIndex(
-                nft => nft.id == id
-            );
+      const index =
+erc1155Gallery.findIndex(
+    nft => nft.id == id
+);
 
-        if (index >= 0) {
+if(index == -1){
 
-            erc1155Gallery[index].owner = to;
+    erc1155Gallery.push({
 
-        } else {
+        id,
 
-            erc1155Gallery.push({
+        image:imageURL,
 
-                id: id,
+        owner:to
 
-                image: imageURL,
+    });
 
-                owner: to
-
-            });
-
-        }
+}
 
         localStorage.setItem(
 
@@ -998,7 +978,6 @@ function refreshDApp() {
     document.getElementById("tokenId").innerHTML = "";
     document.getElementById("owner").innerHTML = "";
     document.getElementById("contractAddress").innerHTML = "";
-    document.getElementById("metadataURI").innerHTML = "";
 
     const minted = document.getElementById("mintedImage");
     if (minted) minted.src = "";
