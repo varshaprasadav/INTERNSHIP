@@ -85,7 +85,6 @@ ERC1155
 
 </div>
 
-
 <!-- ========================= -->
 <!-- ERC20 SECTION -->
 <!-- ========================= -->
@@ -112,14 +111,46 @@ ERC1155
         placeholder="Total Supply"
         class="w-full border rounded-lg p-3 mb-4">
 
-    <button
-        id="erc20Btn"
-        onclick="createERC20()"
-        class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+    <div class="flex gap-3 flex-wrap">
 
-        Create ERC20
+        <button
+            id="erc20Btn"
+            onclick="createERC20()"
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
 
-    </button>
+            Create ERC20
+
+        </button>
+
+        <button
+            onclick="toggleERC20List()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+
+            My ERC20 Tokens
+
+        </button>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- ERC20 TOKEN LIST -->
+    <!-- ========================= -->
+
+    <div
+        id="erc20List"
+        class="hidden mt-8">
+
+        <h2 class="text-2xl font-bold text-blue-600 mb-4">
+            My ERC20 Tokens
+        </h2>
+
+        <div
+            id="erc20ListContainer"
+            class="space-y-4">
+
+        </div>
+
+    </div>
 
     <!-- ========================= -->
     <!-- ERC20 SUCCESS CARD -->
@@ -159,7 +190,6 @@ ERC1155
     </div>
 
 </div>
-
 
 
 
