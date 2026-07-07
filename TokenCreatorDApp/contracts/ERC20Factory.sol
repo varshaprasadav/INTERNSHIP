@@ -6,15 +6,28 @@ import "./MyERC20.sol";
 contract ERC20Factory {
 
     event TokenCreated(
-        address tokenAddress,
-        address owner
+        address indexed tokenAddress,
+        address indexed owner,
+        string name,
+        string symbol,
+        uint256 totalSupply
     );
+
+    address[] public allTokens;
+
+    mapping(address => address[]) public userTokens;
 
     function createToken(
         string memory name,
         string memory symbol,
         uint256 supply
-    ) public returns(address) {
+    )
+        external
+        returns(address)
+    {
+        require(bytes(name).length > 0, "Token name required");
+        require(bytes(symbol).length > 0, "Token symbol required");
+        require(supply > 0, "Supply must be greater than zero");
 
         MyERC20 token =
             new MyERC20(
@@ -24,11 +37,33 @@ contract ERC20Factory {
                 msg.sender
             );
 
+        allTokens.push(address(token));
+        userTokens[msg.sender].push(address(token));
+
         emit TokenCreated(
             address(token),
-            msg.sender
+            msg.sender,
+            name,
+            symbol,
+            supply
         );
 
         return address(token);
+    }
+
+    function getAllTokens()
+        external
+        view
+        returns(address[] memory)
+    {
+        return allTokens;
+    }
+
+    function getMyTokens()
+        external
+        view
+        returns(address[] memory)
+    {
+        return userTokens[msg.sender];
     }
 }

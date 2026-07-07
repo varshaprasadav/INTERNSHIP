@@ -11,6 +11,10 @@ contract MyERC20 is ERC20 {
         uint256 supply,
         address owner
     ) ERC20(name, symbol) {
+
+        require(owner != address(0), "Invalid owner");
+        require(supply > 0, "Supply must be greater than zero");
+
         _mint(owner, supply * 10 ** decimals());
     }
 }

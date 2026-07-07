@@ -3,7 +3,7 @@
 // ==========================
 
 const ERC20_FACTORY =
-"0xd8bD34C7444F728B9A963fFacdC0577d6F33c4F0";
+"0x8C8EdC9809C8CF9460020894Fec0Fc50306c620B";
 const ERC721_ADDRESS = "0xf8Af9df05c805dE5bf3EcA61832C55AB8e8dc8e3";
 
 
@@ -21,9 +21,13 @@ const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24
 
 const ERC20_ABI = [
 
-"event TokenCreated(address tokenAddress,address owner)",
+"event TokenCreated(address indexed tokenAddress,address indexed owner,string name,string symbol,uint256 totalSupply)",
 
-"function createToken(string name,string symbol,uint256 supply) returns(address)"
+"function createToken(string name,string symbol,uint256 supply) returns(address)",
+
+"function getAllTokens() view returns(address[])",
+
+"function getMyTokens() view returns(address[])"
 
 ];
 
@@ -142,24 +146,23 @@ async function connectWallet() {
 
 function showTab(tab) {
 
-    document
-        .getElementById("erc20Section")
-        .classList.add("hidden");
+    document.getElementById("erc20Section").classList.add("hidden");
+    document.getElementById("erc721Section").classList.add("hidden");
+    document.getElementById("erc1155Section").classList.add("hidden");
 
-    document
-        .getElementById("erc721Section")
-        .classList.add("hidden");
+    if (tab === "erc20") {
+        document.getElementById("erc20Section").classList.remove("hidden");
+    }
 
-    document
-        .getElementById("erc1155Section")
-        .classList.add("hidden");
+    if (tab === "erc721") {
+        document.getElementById("erc721Section").classList.remove("hidden");
+    }
 
-    document
-        .getElementById(tab + "Section")
-        .classList.remove("hidden");
+    if (tab === "erc1155") {
+        document.getElementById("erc1155Section").classList.remove("hidden");
+    }
+
 }
-
-
 // ==========================
 // IMAGE PREVIEW
 // ==========================
@@ -274,20 +277,46 @@ async function createERC20() {
 
     try {
 
+        if (!signer) {
+            alert("Connect wallet first");
+            return;
+        }
+
         const name =
-            document.getElementById(
-                "erc20Name"
-            ).value;
+            document.getElementById("erc20Name")
+            .value.trim();
 
         const symbol =
-            document.getElementById(
-                "erc20Symbol"
-            ).value;
+            document.getElementById("erc20Symbol")
+            .value.trim();
 
         const supply =
-            document.getElementById(
-                "erc20Supply"
-            ).value;
+            document.getElementById("erc20Supply")
+            .value.trim();
+
+        if (!name) {
+            alert("Enter token name");
+            return;
+        }
+
+        if (!symbol) {
+            alert("Enter token symbol");
+            return;
+        }
+
+        if (!supply || Number(supply) <= 0) {
+            alert("Enter valid supply");
+            return;
+        }
+
+        const button =
+            document.getElementById("erc20Btn");
+
+        button.disabled = true;
+        button.innerText = "Creating...";
+
+        status.innerText =
+            "Waiting for wallet confirmation...";
 
         const contract =
             new ethers.Contract(
@@ -303,9 +332,8 @@ async function createERC20() {
                 supply
             );
 
-        alert(
-            "Creating ERC20..."
-        );
+        status.innerText =
+            "Transaction submitted...";
 
         const receipt =
             await tx.wait();
@@ -316,42 +344,58 @@ async function createERC20() {
 
             try {
 
-                const parsed =
-                    contract.interface.parseLog(log);
+              const parsed =
+    contract.interface.parseLog(log);
 
-                if (
-                    parsed &&
-                    parsed.name ===
-                    "TokenCreated"
-                ) {
+console.log(parsed);
 
-                    tokenAddress =
-                        parsed.args.tokenAddress;
+if (
+    parsed &&
+    parsed.name === "TokenCreated"
+) {
 
-                    break;
-                }
+    tokenAddress =
+        parsed.args.tokenAddress;
+
+    console.log("Token Address:", tokenAddress);
+
+    break;
+}
 
             } catch {}
         }
 
-        if (!tokenAddress) {
+        document.getElementById("erc20Card")
+            .classList.remove("hidden");
 
-            alert(
-                "Token created but address not found"
-            );
+        document.getElementById("tokenName")
+            .innerText = name;
 
-            return;
-        }
+        document.getElementById("tokenSymbol")
+            .innerText = symbol;
 
-        alert(
-            "ERC20 Created\n\n" +
-            tokenAddress
-        );
+        document.getElementById("tokenSupply")
+            .innerText = supply;
+
+        document.getElementById("tokenContract")
+            .innerText = tokenAddress;
+
+        document.getElementById("tokenOwner")
+            .innerText =
+            await signer.getAddress();
+
+        document.getElementById("tokenTx")
+            .innerText = tx.hash;
+
+        status.innerText =
+            "ERC20 Created Successfully";
+
+        button.disabled = false;
+        button.innerText = "Create ERC20";
 
         await window.ethereum.request({
 
-            method:
-                "wallet_watchAsset",
+            method: "wallet_watchAsset",
 
             params: {
 
@@ -359,28 +403,34 @@ async function createERC20() {
 
                 options: {
 
-                    address:
-                        tokenAddress,
+                    address: tokenAddress,
 
-                    symbol:
-                        symbol,
+                    symbol: symbol,
 
-                    decimals:
-                        18
+                    decimals: 18
+
                 }
+
             }
+
         });
 
-    } catch(err) {
-
-        console.error(err);
-
-        alert(
-            "ERC20 Creation Failed"
-        );
     }
-}
+    catch(err){
 
+        console.log(err);
+
+        status.innerText =
+            "ERC20 Creation Failed";
+
+        document.getElementById("erc20Btn")
+            .disabled = false;
+
+        document.getElementById("erc20Btn")
+            .innerText = "Create ERC20";
+    }
+
+}
 
 
 // ==========================
