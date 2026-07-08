@@ -372,8 +372,6 @@ class="grid md:grid-cols-3 gap-6">
 
 </div>
 
-
-
 <!-- ========================= -->
 <!-- ERC1155 SECTION -->
 <!-- ========================= -->
@@ -410,34 +408,36 @@ class="grid md:grid-cols-3 gap-6">
         id="preview1155"
         class="hidden w-64 rounded-lg border mb-4">
 
-    <!-- Mint Button -->
+    <div class="flex gap-3">
 
-    <button
-        onclick="createERC1155()"
-        class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+        <button
+            onclick="createERC1155()"
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
 
-        Mint ERC1155 NFT
+            Mint ERC1155 NFT
 
-    </button>
+        </button>
 
-    <!-- Gallery Button -->
+        <button
+            onclick="toggle1155Gallery()"
+            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg">
 
-    <button
-        onclick="toggle1155Gallery()"
-        class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg ml-3">
+            My ERC1155 NFTs
 
-        ERC1155 Gallery
+        </button>
 
-    </button>
+    </div>
 
-    <!-- Gallery -->
+    <!-- ========================= -->
+    <!-- GALLERY -->
+    <!-- ========================= -->
 
     <div
         id="gallery1155"
         class="hidden mt-8">
 
-        <h3 class="text-2xl font-bold mb-4">
-            ERC1155 Gallery
+        <h3 class="text-2xl font-bold text-purple-600 mb-5">
+            My ERC1155 NFTs
         </h3>
 
         <div
@@ -447,10 +447,6 @@ class="grid md:grid-cols-3 gap-6">
         </div>
 
     </div>
-
-</div>
-
-</div>
 
 </div>
 
