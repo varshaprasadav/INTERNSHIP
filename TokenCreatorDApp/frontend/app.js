@@ -3,8 +3,8 @@
 // ==========================
 
 const ERC20_FACTORY =
-"0x6e37F53490437399E0183eCb03B15a83d99353F3";
-const ERC721_ADDRESS = "0xf8Af9df05c805dE5bf3EcA61832C55AB8e8dc8e3";
+"0x2E803Fdfc8F1636dC137F0e640564Bfcae4351Ae";
+const ERC721_ADDRESS = "0x7aeCb21A0cd9F87C4eE6Ef2aF32E58Ba053aB326";
 
 
 const ERC1155_ADDRESS =
@@ -14,84 +14,117 @@ const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24
 
 
 
-
 // ==========================
 // ABIs
 // ==========================
+
+
+// ERC20 Factory ABI
 const ERC20_ABI = [
 
     "event TokenCreated(address indexed tokenAddress,address indexed owner,string name,string symbol,uint256 totalSupply)",
 
-    "function createToken(string name,string symbol,uint256 supply) returns(address)",
+    "function createToken(string,string,uint256) returns(address)",
 
     "function getAllTokens() view returns(address[])",
 
     "function getMyTokens() view returns(address[])",
 
-    "function getMyTokenDetails() view returns((address tokenAddress,string name,string symbol,uint256 totalSupply)[])",
+    "function getMyTokenDetails() view returns((address tokenAddress,string name,string symbol,uint256 totalSupply)[])"
 
-    "function name() view returns(string)",
+];
+// Individual ERC20 Token ABI
+
+const ERC20_TOKEN_ABI = [
+
+    "function transfer(address,uint256) returns(bool)",
+
+    "function balanceOf(address) view returns(uint256)",
+
+    "function decimals() view returns(uint8)",
 
     "function symbol() view returns(string)",
 
-    "function totalSupply() view returns(uint256)",
+    "function name() view returns(string)",
 
-    "function decimals() view returns(uint8)"
+    "function totalSupply() view returns(uint256)"
 
 ];
 
+// ERC721 ABI
 const ERC721_ABI = [
 
-"event NFTMinted(uint256 tokenId,address owner,string tokenURI)",
+    "event NFTMinted(uint256 indexed tokenId,address indexed owner,string tokenURI)",
+    "event Transfer(address indexed from,address indexed to,uint256 indexed tokenId)",
+    "function mint(address to,string tokenURI,bytes32 imageHash) returns(uint256)",
+     "function ownerOf(uint256 tokenId) view returns(address)",
+    "function tokenURI(uint256 tokenId) view returns(string)",
+    "function name() view returns(string)",
+    "function symbol() view returns(string)",
 
-"function mint(address to,string tokenURI,bytes32 imageHash) returns(uint256)",
 
-"function ownerOf(uint256 tokenId) view returns(address)",
+    "function transferFrom(address from,address to,uint256 tokenId)",
+    
+    "function safeTransferFrom(address from,address to,uint256 tokenId)",
 
-"function tokenURI(uint256 tokenId) view returns(string)",
+    "function approve(address to,uint256 tokenId)",
 
-"function name() view returns(string)",
+    "function getApproved(uint256 tokenId) view returns(address)",
 
-"function symbol() view returns(string)",
+    "function setApprovalForAll(address operator,bool approved)",
 
-"function nextTokenId() view returns(uint256)",
+    "function isApprovedForAll(address owner,address operator) view returns(bool)",
 
-"function totalMinted() view returns(uint256)",
 
-"function imageExists(bytes32 imageHash) view returns(bool)",
-
-"function getNFTsByOwner(address owner) view returns(uint256[])"
-
+    // Custom
+    "function nextTokenId() view returns(uint256)",
+    "function totalMinted() view returns(uint256)",
+    "function imageExists(bytes32 imageHash) view returns(bool)",
+    "function getNFTsByOwner(address owner) view returns(uint256[])"
 ];
+
+// ERC1155 ABI
 const ERC1155_ABI = [
 
-"function mint(address to,uint256 id,uint256 amount,string tokenURI,bytes32 imageHash)",
 
-"function getImageHash(uint256 id) view returns(bytes32)",
+    "event TransferSingle(address indexed operator,address indexed from,address indexed to,uint256 id,uint256 value)",
 
-"function balanceOf(address account,uint256 id) view returns(uint256)",
+   
 
-"function totalCopies(uint256 id) view returns(uint256)",
+    "function mint(address to,uint256 id,uint256 amount,string tokenURI,bytes32 imageHash)",
 
-"function uri(uint256 id) view returns(string)",
 
-"function exists(uint256 id) view returns(bool)",
 
-"function getMyTokens() view returns(uint256[])",
+    "function exists(uint256 id) view returns(bool)",
 
-"function safeTransferFrom(address from,address to,uint256 id,uint256 amount,bytes data)"
+    "function uri(uint256 id) view returns(string)",
+
+    "function balanceOf(address account,uint256 id) view returns(uint256)",
+
+    "function totalCopies(uint256 id) view returns(uint256)",
+
+    "function getImageHash(uint256 id) view returns(bytes32)",
+
+    "function getMyTokens() view returns(uint256[])",
+
+    "function getAllTokenIds() view returns(uint256[])",
+
+
+    "function safeTransferFrom(address from,address to,uint256 id,uint256 amount,bytes data)"
 
 ];
-
 // ==========================
 // GLOBALS
 // ==========================
 
 let signer;
+
 const uploadedImages = new Set();
 
 
-
+// ==========================
+// LOCAL STORAGE
+// ==========================
 
 const ERC721_STORAGE_KEY =
     `erc721Gallery_${ERC721_ADDRESS}`;
@@ -103,12 +136,13 @@ let nftGallery =
 
 
 const ERC1155_STORAGE_KEY =
-`erc1155Gallery_${ERC1155_ADDRESS}`;
+    `erc1155Gallery_${ERC1155_ADDRESS}`;
 
 let erc1155Gallery =
-JSON.parse(
-localStorage.getItem(ERC1155_STORAGE_KEY)
-) || [];
+    JSON.parse(
+        localStorage.getItem(ERC1155_STORAGE_KEY)
+    ) || [];
+
 
 // ==========================
 // CONNECT WALLET
@@ -119,7 +153,7 @@ async function connectWallet() {
     try {
 
         if (!window.ethereum) {
-            alert("Install MetaMask");
+            alert("Please install MetaMask.");
             return;
         }
 
@@ -137,17 +171,23 @@ async function connectWallet() {
         const address =
             await signer.getAddress();
 
-        document.getElementById(
-            "walletAddress"
-        ).innerText =
-            "Connected: " + address;
+        document.getElementById("walletAddress").innerText =
+            "Connected : " + address;
 
-        alert("Wallet Connected");
+        // Load galleries after wallet connection
+        await loadGallery();
+        await load1155Gallery();
 
-    } catch(err) {
+        alert("Wallet Connected Successfully!");
+
+    } catch (err) {
 
         console.error(err);
+
+        alert("Wallet Connection Failed");
+
     }
+
 }
 
 
@@ -162,37 +202,49 @@ function showTab(tab) {
     document.getElementById("erc1155Section").classList.add("hidden");
 
     if (tab === "erc20") {
+
         document.getElementById("erc20Section").classList.remove("hidden");
+
     }
 
     if (tab === "erc721") {
+
         document.getElementById("erc721Section").classList.remove("hidden");
+
     }
 
     if (tab === "erc1155") {
+
         document.getElementById("erc1155Section").classList.remove("hidden");
+
     }
 
 }
+
+
 // ==========================
-// IMAGE PREVIEW
+// ERC721 IMAGE PREVIEW
 // ==========================
-function preview721(event){
 
-const file=event.target.files[0];
+function preview721(event) {
 
-if(!file) return;
+    const file = event.target.files[0];
 
-const img=document.getElementById("preview721");
+    if (!file) return;
 
-img.src=URL.createObjectURL(file);
+    const img =
+        document.getElementById("preview721");
 
-img.classList.remove("hidden");
+    img.src =
+        URL.createObjectURL(file);
+
+    img.classList.remove("hidden");
 
 }
 
+
 // ==========================
-// IMAGE PREVIEW ERC1155
+// ERC1155 IMAGE PREVIEW
 // ==========================
 
 function preview1155(event) {
@@ -200,7 +252,7 @@ function preview1155(event) {
     const file =
         event.target.files[0];
 
-    if(!file) return;
+    if (!file) return;
 
     const img =
         document.getElementById("preview1155");
@@ -210,94 +262,162 @@ function preview1155(event) {
 
     img.classList.remove("hidden");
 
+}
 
-}// ==========================
+
+// ==========================
 // PINATA IMAGE UPLOAD
 // ==========================
+
 async function uploadImage(file) {
-  try {
-    const form = new FormData();
-    form.append("file", file);
 
-    const res = await fetch(
-      "https://api.pinata.cloud/pinning/pinFileToIPFS",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${PINATA_JWT}`
-        },
-        body: form
-      }
-    );
+    try {
 
-    const data = await res.json();
+        const form = new FormData();
 
-    if (!data.IpfsHash) {
-      throw new Error("Image upload failed");
+        form.append("file", file);
+
+        const response = await fetch(
+
+            "https://api.pinata.cloud/pinning/pinFileToIPFS",
+
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    Authorization: `Bearer ${PINATA_JWT}`
+
+                },
+
+                body: form
+
+            }
+
+        );
+
+        const data = await response.json();
+
+        if (!data.IpfsHash) {
+
+            throw new Error("Image upload failed.");
+
+        }
+
+        return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+
     }
 
-    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
-  } catch (err) {
-    console.error("Pinata image error:", err);
-    throw err;
-  }
+    catch (err) {
+
+        console.error(err);
+
+        throw err;
+
+    }
+
 }
+
 
 // ==========================
 // PINATA METADATA UPLOAD
 // ==========================
+
 async function uploadMetadata(name, imageURL) {
-  try {
-    if (!imageURL) throw new Error("Image missing");
 
-    const meta = {
-      name,
-      description: "NFT from DApp",
-      image: imageURL
-    };
+    try {
 
-    const res = await fetch(
-      "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${PINATA_JWT}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(meta)
-      }
-    );
+        const metadata = {
 
-    const data = await res.json();
+            name,
 
-    if (!data.IpfsHash) {
-      throw new Error("Metadata upload failed");
+            description: "NFT created using Token Creator DApp",
+
+            image: imageURL
+
+        };
+
+        const response = await fetch(
+
+            "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    Authorization: `Bearer ${PINATA_JWT}`,
+
+                    "Content-Type": "application/json"
+
+                },
+
+                body: JSON.stringify(metadata)
+
+            }
+
+        );
+
+        const data = await response.json();
+
+        if (!data.IpfsHash) {
+
+            throw new Error("Metadata upload failed.");
+
+        }
+
+        return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+
     }
 
-    return `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
-  } catch (err) {
-    console.error("Pinata metadata error:", err);
-    throw err;
-  }
+    catch (err) {
+
+        console.error(err);
+
+        throw err;
+
+    }
+
 }
 
 
 // ==========================
-// CREATE ERC20
+// HOODI EXPLORER HELPERS
 // ==========================
 
+function getTransactionLink(txHash) {
+
+    return `https://hoodi.etherscan.io/tx/${txHash}`;
+
+}
+
+function getAddressLink(address) {
+
+    return `https://hoodi.etherscan.io/address/${address}`;
+
+}
+
+
+
+// ==========================================================================================================================================
+// CREATE ERC20
+// ==========================================================================================================================================
 
 async function createERC20() {
 
     try {
 
         if (!signer) {
-            alert("Connect wallet first");
+            alert("Connect Wallet First");
             return;
         }
 
         const status =
             document.getElementById("status");
+
+        status.innerText = "";
 
         const name =
             document.getElementById("erc20Name").value.trim();
@@ -329,8 +449,6 @@ async function createERC20() {
         button.disabled = true;
         button.innerText = "Creating...";
 
-       
-
         const contract =
             new ethers.Contract(
                 ERC20_FACTORY,
@@ -344,6 +462,9 @@ async function createERC20() {
                 symbol,
                 supply
             );
+
+        status.innerText =
+            "Waiting for transaction confirmation...";
 
         const receipt =
             await tx.wait();
@@ -402,7 +523,19 @@ async function createERC20() {
             .getElementById("tokenTx")
             .innerText = tx.hash;
 
-        // Refresh list if opened
+        // Auto-fill transfer contract address
+        const transferBox =
+            document.getElementById("transferToken");
+
+        if (transferBox) {
+
+            transferBox.value =
+                tokenAddress;
+
+        }
+
+        status.innerText =
+            "ERC20 Token Created Successfully";
 
         if (
             !document
@@ -414,7 +547,6 @@ async function createERC20() {
 
         }
 
-      
         button.disabled = false;
         button.innerText = "Create ERC20";
 
@@ -453,6 +585,8 @@ async function createERC20() {
         document
             .getElementById("status")
             .innerText =
+            err.reason ||
+            err.message ||
             "ERC20 Creation Failed";
 
         const button =
@@ -464,6 +598,8 @@ async function createERC20() {
     }
 
 }
+
+
 // ==========================
 // TOGGLE ERC20 TOKEN LIST
 // ==========================
@@ -479,14 +615,15 @@ async function toggleERC20List() {
 
         await loadERC20Tokens();
 
-    } else {
+    }
+
+    else {
 
         list.classList.add("hidden");
 
     }
 
 }
-
 
 // ==========================
 // LOAD MY ERC20 TOKENS
@@ -499,6 +636,22 @@ async function loadERC20Tokens() {
 
     container.innerHTML = "";
 
+    if (!signer) {
+
+        container.innerHTML = `
+
+        <div class="border rounded-lg p-4 bg-white">
+
+            Connect Wallet First
+
+        </div>
+
+        `;
+
+        return;
+
+    }
+
     const factory =
         new ethers.Contract(
             ERC20_FACTORY,
@@ -506,10 +659,79 @@ async function loadERC20Tokens() {
             signer
         );
 
-    const tokens =
-        await factory.getMyTokenDetails();
+    const tokenAddresses =
+        await factory.getAllTokens();
 
-    if (tokens.length === 0) {
+    const wallet =
+        await signer.getAddress();
+
+    let found = false;
+
+    for (const tokenAddress of tokenAddresses) {
+
+        const token =
+            new ethers.Contract(
+                tokenAddress,
+                ERC20_TOKEN_ABI,
+                signer
+            );
+
+        const balance =
+            await token.balanceOf(wallet);
+
+        if (balance === 0n) {
+            continue;
+        }
+
+        found = true;
+
+        const name =
+            await token.name();
+
+        const symbol =
+            await token.symbol();
+
+        const decimals =
+            await token.decimals();
+
+        const totalSupply =
+            await token.totalSupply();
+
+        container.innerHTML += `
+
+        <div class="border rounded-xl p-5 bg-white shadow">
+
+            <h3 class="text-xl font-bold text-green-600">
+
+                ${name}
+
+            </h3>
+
+            <p><b>Symbol :</b> ${symbol}</p>
+
+            <p><b>My Balance :</b>
+                ${ethers.formatUnits(balance, decimals)}
+            </p>
+
+            <p><b>Total Supply :</b>
+                ${ethers.formatUnits(totalSupply, decimals)}
+            </p>
+
+            <p class="break-all">
+
+                <b>Contract :</b><br>
+
+                ${tokenAddress}
+
+            </p>
+
+        </div>
+
+        `;
+
+    }
+
+    if (!found) {
 
         container.innerHTML = `
 
@@ -521,45 +743,162 @@ async function loadERC20Tokens() {
 
         `;
 
-        return;
+    }
+
+}
+
+
+// ==========================
+// TRANSFER ERC20
+// ==========================
+
+async function transferERC20() {
+
+    try {
+
+        if (!signer) {
+            alert("Connect Wallet First");
+            return;
+        }
+
+        const tokenAddress =
+            document.getElementById("transferToken").value.trim();
+
+        const to =
+            document.getElementById("transferTo").value.trim();
+
+        const amount =
+            document.getElementById("transferAmount").value.trim();
+
+        if (!tokenAddress) {
+            alert("Enter ERC20 Contract Address");
+            return;
+        }
+
+        if (!to) {
+            alert("Enter Recipient Address");
+            return;
+        }
+
+        if (!amount || Number(amount) <= 0) {
+            alert("Enter Valid Amount");
+            return;
+        }
+
+        const contract =
+            new ethers.Contract(
+                tokenAddress,
+                ERC20_TOKEN_ABI,
+                signer
+            );
+
+        const decimals =
+            await contract.decimals();
+
+        const symbol =
+            await contract.symbol();
+
+        const parsedAmount =
+            ethers.parseUnits(amount, decimals);
+
+        const result =
+            document.getElementById("transferResult");
+
+        if (result) {
+
+            result.classList.remove("hidden");
+
+            result.innerText =
+                "Waiting for transaction confirmation...";
+
+        }
+
+        const tx =
+            await contract.transfer(
+                to,
+                parsedAmount
+            );
+
+        await tx.wait();
+
+        // Refresh ERC20 list (updates sender balance)
+
+        if (
+            !document
+                .getElementById("erc20List")
+                .classList.contains("hidden")
+        ) {
+
+            await loadERC20Tokens();
+
+        }
+
+        // ==========================
+        // SUCCESS CARD
+        // ==========================
+
+        document
+            .getElementById("transferAmountResult")
+            .innerText =
+            amount + " " + symbol;
+
+        document
+            .getElementById("transferToResult")
+            .innerText =
+            to;
+
+        document
+            .getElementById("transferTxResult")
+            .innerText =
+            tx.hash;
+
+        document
+            .getElementById("transferExplorerLink")
+            .href =
+            `https://hoodi.etherscan.io/tx/${tx.hash}`;
+
+        document
+            .getElementById("transferSuccessCard")
+            .classList.remove("hidden");
+
+        if (result) {
+
+            result.classList.add("hidden");
+
+        }
+
+        document.getElementById("transferTo").value = "";
+
+        document.getElementById("transferAmount").value = "";
 
     }
 
-    for (const token of tokens) {
+    catch (err) {
 
-        container.innerHTML += `
+        console.error(err);
 
-        <div class="border rounded-xl p-5 bg-white shadow">
+        alert(
+            err.reason ||
+            err.message ||
+            "Transfer Failed"
+        );
 
-            <h3 class="text-xl font-bold text-green-600">
+        const result =
+            document.getElementById("transferResult");
 
-                ${token.name}
+        if (result) {
 
-            </h3>
+            result.classList.add("hidden");
 
-            <p><b>Symbol :</b> ${token.symbol}</p>
-
-            <p><b>Total Supply :</b> ${token.totalSupply}</p>
-
-            <p class="break-all">
-
-                <b>Contract :</b><br>
-
-                ${token.tokenAddress}
-
-            </p>
-
-        </div>
-
-        `;
+        }
 
     }
 
 }
 
-// ==========================
+// ====================================================================================================================================
 // CREATE ERC721
-// ==========================
+// =====================================================================================================================================
 
 async function createERC721() {
 
@@ -580,141 +919,454 @@ async function createERC721() {
             document.getElementById("erc721Image").files[0];
 
         if (!collectionName || !collectionSymbol || !file) {
+
             alert("Fill all fields");
             return;
+
         }
 
-        const contract = new ethers.Contract(
-            ERC721_ADDRESS,
-            ERC721_ABI,
-            signer
-        );
+        const contract =
+            new ethers.Contract(
+                ERC721_ADDRESS,
+                ERC721_ABI,
+                signer
+            );
 
+        // ==========================
         // IMAGE HASH
-        const buffer = await file.arrayBuffer();
+        // ==========================
 
-        const hashBuffer = await crypto.subtle.digest(
-            "SHA-256",
-            buffer
-        );
+        const buffer =
+            await file.arrayBuffer();
+
+        const hashBuffer =
+            await crypto.subtle.digest(
+                "SHA-256",
+                buffer
+            );
 
         const imageHash =
             "0x" +
             Array.from(new Uint8Array(hashBuffer))
-                .map(x => x.toString(16).padStart(2, "0"))
-                .join("");
+            .map(
+                x => x.toString(16).padStart(2, "0")
+            )
+            .join("");
 
-        const exists = await contract.imageExists(imageHash);
+        const exists =
+            await contract.imageExists(imageHash);
 
         if (exists) {
-            alert("This image already minted!");
+
+            alert("Image already minted");
             return;
+
         }
 
-        alert("Uploading Image...");
+        // ==========================
+        // UPLOAD IMAGE
+        // ==========================
 
-        const imageURL = await uploadImage(file);
+        const imageURL =
+            await uploadImage(file);
 
-        const tokenURI = await uploadMetadata(
-            collectionName,
-            imageURL
+        // ==========================
+        // METADATA
+        // ==========================
+
+        const tokenURI =
+            await uploadMetadata(
+                collectionName,
+                imageURL
+            );
+
+        // ==========================
+        // MINT NFT
+        // ==========================
+
+        const tx =
+            await contract.mint(
+                await signer.getAddress(),
+                tokenURI,
+                imageHash
+            );
+
+        const receipt =
+            await tx.wait();
+
+        // ==========================
+        // TOKEN ID
+        // ==========================
+
+        let tokenId;
+
+        for (const log of receipt.logs) {
+
+            try {
+
+                const parsed =
+                    contract.interface.parseLog(log);
+
+                if (parsed && parsed.name === "NFTMinted") {
+
+                    tokenId =
+                        Number(parsed.args[0]);
+
+                    break;
+
+                }
+
+            }
+            catch (e) { }
+
+        }
+
+        if (tokenId === undefined) {
+
+            const next =
+                await contract.nextTokenId();
+
+            tokenId =
+                Number(next) - 1;
+
+        }
+
+        // ==========================
+        // SAVE TX HASH
+        // ==========================
+
+        let txHistory =
+            JSON.parse(
+                localStorage.getItem("erc721TxHistory")
+            ) || {};
+
+        txHistory[tokenId] =
+            tx.hash;
+
+        localStorage.setItem(
+            "erc721TxHistory",
+            JSON.stringify(txHistory)
         );
 
-        alert("Minting NFT...");
+        // ==========================
+        // SUCCESS CARD
+        // ==========================
 
-        const tx = await contract.mint(
-            await signer.getAddress(),
-            tokenURI,
-            imageHash
-        );
+        document
+            .getElementById("nftCard")
+            .classList.remove("hidden");
 
-        await tx.wait();
+        document
+            .getElementById("mintedImage")
+            .src =
+            imageURL;
 
-        alert("NFT Minted Successfully!");
+        document
+            .getElementById("collectionName")
+            .innerText =
+            collectionName;
 
-        // refresh gallery after mint
+        document
+            .getElementById("collectionSymbol")
+            .innerText =
+            collectionSymbol;
+
+        document
+            .getElementById("tokenId")
+            .innerText =
+            tokenId;
+
+        document
+            .getElementById("owner")
+            .innerText =
+            await signer.getAddress();
+
+        document
+            .getElementById("contractAddress")
+            .innerText =
+            ERC721_ADDRESS;
+
+        document
+            .getElementById("ipfsURL")
+            .innerText =
+            imageURL;
+
+        document
+            .getElementById("txHash")
+            .innerText =
+            tx.hash;
+
+        document
+            .getElementById("explorerLink")
+            .href =
+            `https://hoodi.etherscan.io/tx/${tx.hash}`;
+
+        alert("NFT Minted Successfully");
+
         await loadGallery();
 
-    } catch (err) {
-        console.error(err);
-        alert(err.reason || err.message);
     }
+
+    catch (err) {
+
+        console.error(err);
+
+        alert(
+            err.reason ||
+            err.message ||
+            "Mint Failed"
+        );
+
+    }
+
 }
 
 // ==========================
-// LOAD ERC721 GALLERY
+// LOAD MY ERC721 GALLERY
 // ==========================
-
 
 async function loadGallery() {
 
-    const gallerySection =
-        document.getElementById("gallerySection");
+    if (!signer) return;
 
     const gallery =
         document.getElementById("gallery");
 
-    gallerySection.classList.remove("hidden");
+    document
+        .getElementById("gallerySection")
+        .classList.remove("hidden");
+
     gallery.innerHTML = "";
 
     try {
 
-        const contract = new ethers.Contract(
-            ERC721_ADDRESS,
-            ERC721_ABI,
-            signer
-        );
+        const contract =
+            new ethers.Contract(
+                ERC721_ADDRESS,
+                ERC721_ABI,
+                signer
+            );
 
-        const total = await contract.nextTokenId();
+        const currentUser =
+            await signer.getAddress();
 
-        if (total === 0n) {
-            gallery.innerHTML =
-                "<p class='text-gray-500'>No NFTs Minted Yet.</p>";
+        // Get only NFTs owned by connected wallet
+        const tokenIds =
+            await contract.getNFTsByOwner(currentUser);
+
+        if (tokenIds.length === 0) {
+
+            gallery.innerHTML = `
+                <div class="bg-white rounded-xl shadow p-5 text-center">
+                    <h3 class="text-lg font-semibold">
+                        No NFTs Found
+                    </h3>
+                </div>
+            `;
+
             return;
         }
 
-        for (let i = 0n; i < total; i++) {
+        const txHistory =
+            JSON.parse(
+                localStorage.getItem("erc721TxHistory")
+            ) || {};
 
-            const owner = await contract.ownerOf(i);
-            const uri = await contract.tokenURI(i);
-
-            let image = "";
+        for (const id of tokenIds) {
 
             try {
-                const res = await fetch(uri);
-                const meta = await res.json();
-                image = meta.image || "";
-            } catch (e) {
-                image = "";
+
+                const tokenId = Number(id);
+
+                const owner =
+                    await contract.ownerOf(tokenId);
+
+                let uri =
+                    await contract.tokenURI(tokenId);
+
+                if (uri.startsWith("ipfs://")) {
+
+                    uri =
+                        uri.replace(
+                            "ipfs://",
+                            "https://gateway.pinata.cloud/ipfs/"
+                        );
+
+                }
+
+                let metadata = {};
+
+                try {
+
+                    const response =
+                        await fetch(uri);
+
+                    metadata =
+                        await response.json();
+
+                }
+                catch {
+
+                    metadata = {};
+
+                }
+
+                let image =
+                    metadata.image || "";
+
+                if (
+                    image &&
+                    image.startsWith("ipfs://")
+                ) {
+
+                    image =
+                        image.replace(
+                            "ipfs://",
+                            "https://gateway.pinata.cloud/ipfs/"
+                        );
+
+                }
+
+                const txHash =
+                    txHistory[tokenId];
+
+                const explorerHref =
+                    txHash
+                        ? `https://hoodi.etherscan.io/tx/${txHash}`
+                        : `https://hoodi.etherscan.io/address/${ERC721_ADDRESS}`;
+
+                gallery.innerHTML += `
+
+<div class="bg-white rounded-2xl shadow-lg border p-5">
+
+    <img
+        src="${image || 'https://placehold.co/350x300?text=No+Image'}"
+        class="w-full h-52 object-cover rounded-xl border">
+
+    <h3 class="text-xl font-bold text-blue-700 mt-4">
+        ${metadata.name || "NFT"}
+    </h3>
+
+    <p>
+        <b>Token ID:</b>
+        ${tokenId}
+    </p>
+
+    <p class="break-all mt-3">
+        <b>Owner:</b><br>
+        ${owner}
+    </p>
+
+    <p class="break-all mt-3">
+        <b>Contract:</b><br>
+        ${ERC721_ADDRESS}
+    </p>
+
+    <p class="text-xs break-all bg-gray-100 p-2 rounded mt-3">
+        <b>Image URL:</b><br>
+        ${image || "Not available"}
+    </p>
+
+    <a
+        href="${explorerHref}"
+        target="_blank"
+        class="block mt-4 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold">
+
+        Hoodi Explorer
+
+    </a>
+
+</div>
+
+`;
+
+            }
+            catch (err) {
+
+                console.log("NFT skipped", err);
+
             }
 
-            gallery.innerHTML += `
-                <div class="border rounded-xl shadow bg-white p-4">
-
-                    <img src="${image}" class="w-full h-48 object-cover rounded-lg">
-
-                    <h3 class="font-bold mt-3">
-                        Token ID: ${i}
-                    </h3>
-
-                    <p class="break-all">
-                        <b>Owner:</b><br>${owner}
-                    </p>
-
-                </div>
-            `;
         }
 
-    } catch (err) {
-        console.error(err);
-        alert("Failed to load gallery");
     }
+    catch (err) {
+
+        console.error(err);
+
+        alert("Gallery Loading Failed");
+
+    }
+
 }
 
 
-// ==========================
+
+//********************************//
+//************************************* *//
+
+
+async function transferERC721() {
+
+    try {
+
+        if (!signer) {
+            alert("Connect Wallet First");
+            return;
+        }
+
+        const tokenId =
+            document.getElementById("transfer721TokenId").value.trim();
+
+        const to =
+            document.getElementById("transfer721To").value.trim();
+
+        if (!tokenId || !to) {
+            alert("Fill all fields");
+            return;
+        }
+
+        const contract =
+            new ethers.Contract(
+                ERC721_ADDRESS,
+                ERC721_ABI,
+                signer
+            );
+
+        const from =
+            await signer.getAddress();
+
+        const tx =
+            await contract["safeTransferFrom(address,address,uint256)"](
+                from,
+                to,
+                Number(tokenId)
+            );
+
+        await tx.wait();
+
+        alert("NFT Transferred Successfully");
+
+        await loadGallery();
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        alert(err.reason || err.message || "Transfer Failed");
+
+    }
+
+}
+
+
+
+
+// ======================================================================================================================================
 // CREATE ERC1155
-// ==========================
+// ======================================================================================================================================
+
 async function createERC1155() {
 
     try {
@@ -741,11 +1393,12 @@ async function createERC1155() {
             return;
         }
 
-        const contract = new ethers.Contract(
-            ERC1155_ADDRESS,
-            ERC1155_ABI,
-            signer
-        );
+        const contract =
+            new ethers.Contract(
+                ERC1155_ADDRESS,
+                ERC1155_ABI,
+                signer
+            );
 
         const exists =
             await contract.exists(id);
@@ -777,9 +1430,7 @@ async function createERC1155() {
             imageHash =
                 "0x" +
                 Array.from(new Uint8Array(hashBuffer))
-                    .map(x =>
-                        x.toString(16).padStart(2, "0")
-                    )
+                    .map(x => x.toString(16).padStart(2, "0"))
                     .join("");
 
             imageURL =
@@ -831,17 +1482,50 @@ async function createERC1155() {
 
         await tx.wait();
 
+        // ==========================
+        // SUCCESS CARD
+        // ==========================
+
+        document
+            .getElementById("erc1155Card")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("erc1155MintedImage")
+            .src = imageURL;
+
+        document
+            .getElementById("erc1155TokenId")
+            .innerText = id;
+
+        document
+            .getElementById("erc1155Copies")
+            .innerText = amount;
+
+        document
+            .getElementById("erc1155Owner")
+            .innerText = to;
+
+        document
+            .getElementById("erc1155ImageLink")
+            .href = imageURL;
+
+        document
+            .getElementById("erc1155TxHash")
+            .innerText = tx.hash;
+
+        document
+            .getElementById("erc1155Explorer")
+            .href =
+            `https://hoodi.etherscan.io/tx/${tx.hash}`;
+
         alert("Mint Successful");
 
-        // ==========================
-        // REFRESH GALLERY
-        // ==========================
+        // Refresh Gallery
 
         await load1155Gallery();
 
-        // ==========================
-        // CLEAR FORM
-        // ==========================
+        // Clear Form
 
         document.getElementById("erc1155To").value = "";
         document.getElementById("erc1155Id").value = "";
@@ -874,7 +1558,6 @@ async function createERC1155() {
 
 }
 
-
 // ==========================
 // ERC1155 GALLERY
 // ==========================
@@ -895,115 +1578,226 @@ async function load1155Gallery() {
 
     }
 
-    const contract =
-        new ethers.Contract(
-            ERC1155_ADDRESS,
-            ERC1155_ABI,
-            signer
-        );
+    try {
 
-    const owner =
-        await signer.getAddress();
-
-    const tokenIds =
-        await contract.getMyTokens();
-
-    if (tokenIds.length === 0) {
-
-        gallery.innerHTML = `
-        <div class="border rounded-lg p-4 bg-white">
-            No ERC1155 NFTs Found
-        </div>`;
-
-        return;
-
-    }
-
-    for (const id of tokenIds) {
-
-        const uri =
-            await contract.uri(id);
-
-        const response =
-            await fetch(uri);
-
-        const metadata =
-            await response.json();
-
-        const copies =
-            await contract.totalCopies(id);
-
-        const balance =
-            await contract.balanceOf(
-                owner,
-                id
+        const contract =
+            new ethers.Contract(
+                ERC1155_ADDRESS,
+                ERC1155_ABI,
+                signer
             );
 
-        gallery.innerHTML += `
+        const owner =
+            await signer.getAddress();
 
-        <div class="border rounded-xl shadow bg-white p-4">
+        const tokenIds =
+            await contract.getMyTokens();
 
-            <img
-                src="${metadata.image}"
-                class="w-full h-48 object-cover rounded-lg">
+        if (tokenIds.length === 0) {
 
-            <h3 class="font-bold mt-3">
+            gallery.innerHTML = `
+            <div class="border rounded-lg p-4 bg-white">
+                No ERC1155 NFTs Found
+            </div>`;
 
-                Token ID : ${id}
+            return;
 
-            </h3>
+        }
 
-            <p>
+        for (const tokenId of tokenIds) {
 
-                <b>Total Copies :</b>
-                ${copies}
+            try {
 
-            </p>
+                let uri =
+                    await contract.uri(tokenId);
 
-            <p>
+                if (uri.startsWith("ipfs://")) {
 
-                <b>Your Balance :</b>
-                ${balance}
+                    uri =
+                        uri.replace(
+                            "ipfs://",
+                            "https://gateway.pinata.cloud/ipfs/"
+                        );
 
-            </p>
+                }
 
-            <p class="break-all">
+                let metadata = {};
 
-                <b>Owner :</b><br>
+                try {
 
-                ${owner}
+                    const response =
+                        await fetch(uri);
 
-            </p>
+                    metadata =
+                        await response.json();
 
-        </div>
+                }
+                catch {
 
-        `;
+                    metadata = {};
+
+                }
+
+                let image =
+                    metadata.image || "";
+
+                if (
+                    image &&
+                    image.startsWith("ipfs://")
+                ) {
+
+                    image =
+                        image.replace(
+                            "ipfs://",
+                            "https://gateway.pinata.cloud/ipfs/"
+                        );
+
+                }
+
+                const copies =
+                    await contract.totalCopies(tokenId);
+
+                const balance =
+                    await contract.balanceOf(
+                        owner,
+                        tokenId
+                    );
+
+                // ==========================
+                // FIND MINT TRANSACTION
+                // ==========================
+
+                let explorerHref =
+                    `https://hoodi.etherscan.io/address/${ERC1155_ADDRESS}`;
+
+                try {
+
+                    const events =
+                        await contract.queryFilter(
+                            contract.filters.TransferSingle()
+                        );
+
+                    const mintEvent =
+                        events.find(event =>
+                            event.args.from === ethers.ZeroAddress &&
+                            Number(event.args.id) === Number(tokenId)
+                        );
+
+                    if (mintEvent) {
+
+                        explorerHref =
+                            `https://hoodi.etherscan.io/tx/${mintEvent.transactionHash}`;
+
+                    }
+
+                }
+                catch (err) {
+
+                    console.log(
+                        "Explorer lookup failed",
+                        err
+                    );
+
+                }
+
+                gallery.innerHTML += `
+
+<div class="border rounded-xl shadow bg-white p-4">
+
+<img
+src="${image || 'https://placehold.co/350x300?text=No+Image'}"
+class="w-full h-48 object-cover rounded-lg">
+
+<h3 class="font-bold mt-3">
+
+Token ID : ${tokenId}
+
+</h3>
+
+<p>
+
+<b>Total Copies :</b>
+
+${copies}
+
+</p>
+
+<p>
+
+<b>Your Balance :</b>
+
+${balance}
+
+</p>
+
+<p class="break-all">
+
+<b>Owner :</b><br>
+
+${owner}
+
+</p>
+
+<p class="break-all">
+
+<b>Contract :</b><br>
+
+${ERC1155_ADDRESS}
+
+</p>
+
+<p class="break-all">
+
+<b>Image :</b><br>
+
+<a
+href="${image || '#'}"
+target="_blank"
+class="text-blue-600 underline">
+
+View Image
+
+</a>
+
+</p>
+
+<a
+href="${explorerHref}"
+target="_blank"
+class="block mt-4 text-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+
+View on Hoodi Explorer
+
+</a>
+
+</div>
+
+`;
+
+            }
+            catch (err) {
+
+                console.log(
+                    "NFT skipped",
+                    err
+                );
+
+            }
+
+        }
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        gallery.innerHTML =
+            "<p class='text-red-600'>Failed to Load Gallery</p>";
 
     }
 
 }
-// ==========================
-// TOGGLE ERC1155 GALLERY
-// ==========================
 
-async function toggle1155Gallery() {
-
-    const gallery =
-        document.getElementById("gallery1155");
-
-    if (gallery.classList.contains("hidden")) {
-
-        gallery.classList.remove("hidden");
-
-        await load1155Gallery();
-
-    } else {
-
-        gallery.classList.add("hidden");
-
-    }
-
-}
 
 
 // ==========================
@@ -1016,157 +1810,201 @@ function refreshDApp() {
     // ERC20
     // ==========================
 
+    document.getElementById("erc20Name").value = "";
+    document.getElementById("erc20Symbol").value = "";
+    document.getElementById("erc20Supply").value = "";
 
-const erc20Name = document.getElementById("erc20Name");
-if (erc20Name) erc20Name.value = "";
+    // Transfer Section
 
-const erc20Symbol = document.getElementById("erc20Symbol");
-if (erc20Symbol) erc20Symbol.value = "";
+    const transferToken =
+        document.getElementById("transferToken");
 
-const erc20Supply = document.getElementById("erc20Supply");
-if (erc20Supply) erc20Supply.value = "";
+    if (transferToken)
+        transferToken.value = "";
 
-// Hide ERC20 Token List
+    const transferTo =
+        document.getElementById("transferTo");
 
-const erc20List = document.getElementById("erc20List");
+    if (transferTo)
+        transferTo.value = "";
 
-if (erc20List) {
+    const transferAmount =
+        document.getElementById("transferAmount");
 
-    erc20List.classList.add("hidden");
+    if (transferAmount)
+        transferAmount.value = "";
 
-}
+    const transferSuccessCard =
+        document.getElementById("transferSuccessCard");
 
-const erc20ListContainer =
-    document.getElementById("erc20ListContainer");
+    if (transferSuccessCard)
+        transferSuccessCard.classList.add("hidden");
 
-if (erc20ListContainer) {
+    const transferResult =
+        document.getElementById("transferResult");
 
-    erc20ListContainer.innerHTML = "";
+    if (transferResult)
+        transferResult.classList.add("hidden");
 
-}
+    // Hide ERC20 List
 
-// Hide ERC20 Success Card
+    const erc20List =
+        document.getElementById("erc20List");
 
-const erc20Card =
-    document.getElementById("erc20Card");
+    if (erc20List)
+        erc20List.classList.add("hidden");
 
-if (erc20Card) {
+    const erc20ListContainer =
+        document.getElementById("erc20ListContainer");
 
-    erc20Card.classList.add("hidden");
+    if (erc20ListContainer)
+        erc20ListContainer.innerHTML = "";
 
-}
+    // Hide Success Card
 
-// Clear Success Card Details
+    const erc20Card =
+        document.getElementById("erc20Card");
 
-document.getElementById("tokenName").innerHTML = "";
-document.getElementById("tokenSymbol").innerHTML = "";
-document.getElementById("tokenSupply").innerHTML = "";
-document.getElementById("tokenContract").innerHTML = "";
-document.getElementById("tokenOwner").innerHTML = "";
-document.getElementById("tokenTx").innerHTML = "";
+    if (erc20Card)
+        erc20Card.classList.add("hidden");
 
-// Clear Status
+    document.getElementById("tokenName").innerHTML = "";
+    document.getElementById("tokenSymbol").innerHTML = "";
+    document.getElementById("tokenSupply").innerHTML = "";
+    document.getElementById("tokenContract").innerHTML = "";
+    document.getElementById("tokenOwner").innerHTML = "";
+    document.getElementById("tokenTx").innerHTML = "";
+    document.getElementById("status").innerHTML = "";
 
-document.getElementById("status").innerHTML = "";
     // ==========================
     // ERC721
     // ==========================
 
-    const name = document.getElementById("erc721Name");
-    if (name) name.value = "";
+    document.getElementById("erc721Name").value = "";
+    document.getElementById("erc721Symbol").value = "";
+    document.getElementById("erc721Image").value = "";
 
-    const symbol = document.getElementById("erc721Symbol");
-    if (symbol) symbol.value = "";
 
-    const image = document.getElementById("erc721Image");
-    if (image) image.value = "";
 
-    const preview = document.getElementById("preview721");
+    // Clear Transfer Inputs
+const transfer721TokenId =
+    document.getElementById("transfer721TokenId");
 
-    if (preview) {
+if (transfer721TokenId)
+    transfer721TokenId.value = "";
 
-        preview.src = "";
-        preview.classList.add("hidden");
+const transfer721To =
+    document.getElementById("transfer721To");
 
-    }
+if (transfer721To)
+    transfer721To.value = "";
 
-    // Hide NFT Card
 
-    const card = document.getElementById("nftCard");
+    const preview721 =
+        document.getElementById("preview721");
 
-    if (card) {
+    preview721.src = "";
+    preview721.classList.add("hidden");
 
-        card.classList.add("hidden");
+    const nftCard =
+        document.getElementById("nftCard");
 
-    }
+    nftCard.classList.add("hidden");
 
     document.getElementById("collectionName").innerHTML = "";
     document.getElementById("collectionSymbol").innerHTML = "";
     document.getElementById("tokenId").innerHTML = "";
     document.getElementById("owner").innerHTML = "";
     document.getElementById("contractAddress").innerHTML = "";
+    document.getElementById("txHash").innerHTML = "";
 
-    const minted = document.getElementById("mintedImage");
+    document.getElementById("mintedImage").src = "";
 
-    if (minted) {
+    const imageLink =
+        document.getElementById("imageLink");
 
-        minted.src = "";
+    if (imageLink)
+        imageLink.href = "#";
 
-    }
+    const explorerLink =
+        document.getElementById("explorerLink");
 
-    // Hide ERC721 Gallery
+    if (explorerLink)
+        explorerLink.href = "#";
 
     const gallerySection =
         document.getElementById("gallerySection");
 
-    if (gallerySection) {
+    gallerySection.classList.add("hidden");
 
-        gallerySection.classList.add("hidden");
+    const gallery =
+        document.getElementById("gallery");
 
-    }
+    if (gallery)
+        gallery.innerHTML = "";
 
     // ==========================
     // ERC1155
     // ==========================
 
-    const to = document.getElementById("erc1155To");
-    if (to) to.value = "";
-
-    const id = document.getElementById("erc1155Id");
-    if (id) id.value = "";
-
-    const amount = document.getElementById("erc1155Amount");
-    if (amount) amount.value = "";
-
-    const img1155 = document.getElementById("erc1155Image");
-    if (img1155) img1155.value = "";
+    document.getElementById("erc1155To").value = "";
+    document.getElementById("erc1155Id").value = "";
+    document.getElementById("erc1155Amount").value = "";
+    document.getElementById("erc1155Image").value = "";
 
     const preview1155 =
         document.getElementById("preview1155");
 
-    if (preview1155) {
+    preview1155.src = "";
+    preview1155.classList.add("hidden");
 
-        preview1155.src = "";
-        preview1155.classList.add("hidden");
+    const erc1155Card =
+        document.getElementById("erc1155Card");
 
-    }
+    if (erc1155Card)
+        erc1155Card.classList.add("hidden");
 
-    // Hide ERC1155 Gallery
+    document.getElementById("erc1155MintedImage").src = "";
+    document.getElementById("erc1155TokenId").innerHTML = "";
+    document.getElementById("erc1155Copies").innerHTML = "";
+    document.getElementById("erc1155Owner").innerHTML = "";
+    document.getElementById("erc1155TxHash").innerHTML = "";
+
+    const erc1155ImageLink =
+        document.getElementById("erc1155ImageLink");
+
+    if (erc1155ImageLink)
+        erc1155ImageLink.href = "#";
+
+    const erc1155Explorer =
+        document.getElementById("erc1155Explorer");
+
+    if (erc1155Explorer)
+        erc1155Explorer.href = "#";
 
     const gallery1155 =
         document.getElementById("gallery1155");
 
-    if (gallery1155) {
+    gallery1155.classList.add("hidden");
 
-        gallery1155.classList.add("hidden");
+    const gallery1155Grid =
+        document.getElementById("gallery1155Grid");
 
-    }
+    if (gallery1155Grid)
+        gallery1155Grid.innerHTML = "";
+
+    alert("DApp Refreshed Successfully");
 
 }
-window.onload = async function () {
 
-    loadGallery();
 
-    await load1155Gallery();
+// ==========================
+// WINDOW LOAD
+// ==========================
+
+window.onload = function () {
+
+    document.getElementById("walletAddress").innerText =
+        "Not Connected";
 
 };
