@@ -180,7 +180,7 @@ inside the project directory.
 Example
 
 ```env
-HOODI_RPC_URL=YOUR_ALCHEMY_RPC_URL
+HOODI_RPC_URL=https://eth-hoodi.g.alchemy.com/v2/UiCANatOqd8nWW5f791tf
 
 PRIVATE_KEY=YOUR_PRIVATE_KEY
 
@@ -470,7 +470,7 @@ git clone git@github.com:varshaprasadav/INTERNSHIP.git
 
 # Author
 
-**Varsha Prasad**
+**Varsha Prasad A V**
 
 GitHub: https://github.com/varshaprasadav
 
