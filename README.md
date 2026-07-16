@@ -2,354 +2,476 @@
 
 ## Project Overview
 
-Token Creator DApp is a decentralized application that allows users to create and manage blockchain tokens through a simple web interface. The application supports:
+Token Creator DApp is a decentralized web application that allows users to create and manage Ethereum tokens without writing Solidity smart contracts. The application provides a simple and user-friendly interface for creating **ERC20**, **ERC721**, and **ERC1155** tokens on the **Ethereum Hoodi Testnet**.
 
-* ERC20 Token Creation
-* ERC721 NFT Minting
-* ERC1155 Multi-Token Minting
-* MetaMask Wallet Integration
-* IPFS Storage using Pinata
-* Smart Contracts written in Solidity
-* Frontend developed using HTML, Tailwind CSS, JavaScript, and Ethers.js
-
-The system enables users to create fungible tokens, unique NFTs, and multi-copy NFTs without directly interacting with smart contract code.
+The application integrates MetaMask for wallet connectivity, Ethers.js for blockchain interactions, Pinata for decentralized IPFS storage, and Alchemy as the RPC provider. Users can create tokens, mint NFTs, transfer assets, and view their owned NFTs through an intuitive interface.
 
 ---
 
 # Features
 
-## ERC20 Token
+## ERC20
 
-* Create custom ERC20 tokens
-* Define token name
-* Define token symbol
-* Define total supply
-* Automatically mint supply to creator wallet
+* Create ERC20 tokens
+* View created ERC20 tokens
+* Transfer ERC20 tokens
+* Display token information
+* Add created token to MetaMask
 
-## ERC721 NFT
+## ERC721
 
-* Upload NFT image
-* Store image on IPFS using Pinata
-* Generate metadata automatically
-* Mint NFT to connected wallet
-* Unique Token ID generated automatically
+* Create ERC721 NFTs
+* Upload NFT images to IPFS
+* Automatically generate metadata
+* Mint NFTs
+* View NFT Gallery
+* Transfer NFTs
+* View transaction on Hoodi Explorer
 
-## ERC1155 NFT
+## ERC1155
 
-* Upload image
-* Store metadata on IPFS
-* Create multiple copies of the same NFT
-* Specify token ID and amount
-* Mint tokens to any wallet address
+* Mint ERC1155 NFTs
+* Mint multiple copies of the same NFT
+* Upload metadata to IPFS
+* View ERC1155 Gallery
+* Transfer ERC1155 copies
+* View transaction on Hoodi Explorer
 
 ---
 
-# Technology Stack
+# Technologies Used
 
-## Frontend
+<div align="center">
 
-* HTML5
-* Tailwind CSS
-* JavaScript
-* Ethers.js v6
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
-## Backend / Blockchain
+![Ethers.js](https://img.shields.io/badge/Ethers.js-3C3C3D?style=for-the-badge)
+![Solidity](https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white)
+![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-4E5EE4?style=for-the-badge&logo=openzeppelin&logoColor=white)
 
-* Solidity 0.8.20
-* OpenZeppelin Contracts
-* Hardhat / Remix IDE
+![MetaMask](https://img.shields.io/badge/MetaMask-F6851B?style=for-the-badge&logo=metamask&logoColor=white)
+![Pinata](https://img.shields.io/badge/Pinata-6F3FF5?style=for-the-badge)
+![Alchemy](https://img.shields.io/badge/Alchemy-6633FF?style=for-the-badge)
+![Ethereum Hoodi](https://img.shields.io/badge/Ethereum-Hoodi_Testnet-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)
 
-## Wallet
+</div>
 
-* MetaMask
+| Technology | Purpose |
+|------------|---------|
+| HTML5 | Frontend Development |
+| Tailwind CSS | User Interface Design |
+| JavaScript | Application Logic |
+| Ethers.js v6 | Blockchain Interaction |
+| Solidity | Smart Contract Development |
+| OpenZeppelin Contracts | ERC Token Standards |
+| MetaMask | Wallet Integration |
+| Pinata | IPFS Image & Metadata Storage |
+| Alchemy | Ethereum Hoodi RPC Provider |
 
-## Storage
+# Project Structure
 
-* Pinata
-* IPFS
+```text
+INTERNSHIP/
+│
+├── contracts/
+│   ├── MyERC20.sol
+│   ├── ERC20Factory.sol
+│   ├── MyNFT.sol
+│   ├── ERC721Factory.sol
+│   └── MyERC1155.sol
+│
+├── index.html
+├── app.js
+├── README.md
+└── .env.example
+```
 
 ---
 
 # Prerequisites
 
-Before running the project, ensure the following software is installed:
+Before running the project, ensure the following software is installed on your system.
 
-### Node.js
+* Git
+* Node.js (Version 18 or later)
+* npm
+* Visual Studio Code
+* Live Server Extension for Visual Studio Code
+* MetaMask Browser Extension
 
-Version 18 or later
+You also need accounts for:
 
-Download:
-
-https://nodejs.org
-
-### MetaMask
-
-Install MetaMask browser extension.
-
-https://metamask.io
-
-### Git
-
-Download:
-
-https://git-scm.com
-
-### Pinata Account
-
-Create a free account and generate a JWT API key.
-
-https://pinata.cloud
+* Alchemy
+* Pinata
 
 ---
 
 # Dependencies
 
-Install the following packages:
+Install project dependencies.
 
 ```bash
 npm install
 ```
 
-Or manually install:
+If you want to compile or modify the smart contracts:
 
 ```bash
-npm install ethers
 npm install @openzeppelin/contracts
-npm install hardhat
 ```
 
----
+The frontend uses:
 
-# Smart Contracts
-
-## ERC20
-
-### MyERC20.sol
-
-Responsible for creating ERC20 tokens and minting initial supply.
-
-### ERC20Factory.sol
-
-Factory contract used to deploy new ERC20 token contracts.
+* Tailwind CSS
+* Ethers.js Version 6
 
 ---
 
-## ERC721
+# Installation
 
-### MyNFT.sol
+## Step 1: Clone the Repository
 
-Responsible for minting ERC721 NFTs and storing metadata URI.
-
-### ERC721Factory.sol
-
-Factory contract used to deploy ERC721 NFT collections.
-
----
-
-## ERC1155
-
-### MyERC1155.sol
-
-Responsible for minting ERC1155 tokens with multiple copies.
-
----
-
-# Installation Instructions
-
-## Clone Repository
+Clone using HTTPS
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/varshaprasadav/INTERNSHIP.git
 ```
 
-Move into project folder:
+Or clone using SSH
 
 ```bash
-cd token-creator
+git clone git@github.com:varshaprasadav/INTERNSHIP.git
 ```
 
 ---
 
-## Install Dependencies
+## Step 2: Navigate to the Project Folder
 
 ```bash
-npm install
+cd INTERNSHIP
 ```
 
 ---
 
-# Configuration
+## Step 3: Open the Project
 
-## Configure Pinata
+Open the project using Visual Studio Code.
 
-Open app.js
-
-Replace:
-
-```javascript
-const PINATA_JWT = "YOUR_PINATA_JWT";
+```bash
+code .
 ```
 
-with your Pinata JWT key.
+or manually open the project folder in Visual Studio Code.
 
 ---
 
-## Configure Smart Contract Addresses
+# Environment Configuration
 
-Update deployed contract addresses in app.js:
+Create a file named
 
-```javascript
-const ERC20_FACTORY = "0xd8bD34C7444F728B9A963fFacdC0577d6F33c4F0";
-
-const ERC721_ADDRESS = "0x14E9FE24a0462f54dbEdA69E9c033b32e4808ea6";
-
-const ERC1155_ADDRESS = "0x310C90c6feA2A64a0447AdE8f692a48b9e849197";
 ```
+.env
+```
+
+inside the project directory.
+
+Example
+
+```env
+HOODI_RPC_URL=YOUR_ALCHEMY_RPC_URL
+
+PRIVATE_KEY=YOUR_PRIVATE_KEY
+
+PINATA_JWT=YOUR_PINATA_JWT
+```
+
+**Important**
+
+Do not upload your private key, Pinata JWT, or `.env` file to GitHub.
 
 ---
 
-# Deploy Smart Contracts
+# Configure Alchemy
 
-## Using Remix IDE
+1. Create an Alchemy account.
+2. Create a new application.
+3. Select the **Ethereum Hoodi Testnet** network.
+4. Copy the generated RPC URL.
+5. Replace `HOODI_RPC_URL` in the `.env` file with your RPC URL.
 
-1. Open Remix IDE
-2. Compile contracts using Solidity 0.8.20
-3. Connect MetaMask
-4. Deploy contracts
-5. Copy deployed contract addresses
-6. Paste addresses into app.js
+---
+
+# Configure Pinata
+
+1. Create a Pinata account.
+2. Generate a JWT token.
+3. Replace `PINATA_JWT` with your generated token.
+
+Pinata is used to upload:
+
+* NFT Images
+* NFT Metadata
+
+---
+
+# Configure MetaMask
+
+Install the MetaMask browser extension.
+
+Add the Hoodi Testnet using the following configuration.
+
+| Field           | Value                      |
+| --------------- | -------------------------- |
+| Network Name    | Hoodi Testnet              |
+| RPC URL         | Your Alchemy Hoodi RPC URL |
+| Chain ID        | 560048                     |
+| Currency Symbol | ETH                        |
+
+After adding the network:
+
+* Switch MetaMask to Hoodi Testnet.
+* Import or create a wallet.
+* Obtain Hoodi Test ETH from a Hoodi Faucet.
 
 ---
 
 # Running the Application
 
-If using Live Server:
+After completing the above configuration, follow these steps.
 
-```bash
-npx live-server
+### Start the Application
+
+Open the project folder in Visual Studio Code.
+
+Open the file
+
 ```
-
-or open:
-
-```bash
 index.html
 ```
 
-in a browser.
+Right-click and select
+
+```
+Open with Live Server
+```
+
+The application opens in your browser.
+
+Default URL
+
+```
+http://127.0.0.1:5500
+```
 
 ---
 
-# Usage Guidelines
+# Getting Started
 
-## Connect Wallet
+Once the application opens:
 
-1. Open application
-2. Click "Connect Wallet"
-3. Approve MetaMask connection
+### 1. Connect Wallet
 
----
+Click **Connect Wallet**.
 
-## Create ERC20 Token
+Approve the MetaMask connection request.
 
-1. Select ERC20 tab
-2. Enter token name
-3. Enter token symbol
-4. Enter total supply
-5. Click Create ERC20
-6. Confirm MetaMask transaction
-7. Token contract is created
+Your wallet address will appear on the screen.
 
 ---
 
-## Create ERC721 NFT
+### 2. Select Token Type
 
-1. Select ERC721 tab
-2. Enter NFT name
-3. Enter NFT symbol
-4. Upload image
-5. Click Create NFT
-6. Image uploaded to IPFS
-7. Metadata uploaded to IPFS
-8. Confirm MetaMask transaction
-9. NFT is minted to connected wallet
+Choose one of the following:
+
+* ERC20
+* ERC721
+* ERC1155
 
 ---
 
-## Create ERC1155 NFT
+# Using the Application
 
-1. Select ERC1155 tab
-2. Enter recipient address
-3. Enter token ID
-4. Enter amount
-5. Upload image
-6. Click Mint
-7. Confirm MetaMask transaction
-8. ERC1155 tokens are minted
+## ERC20
 
-
-
-# IPFS Workflow
-
-The application follows these steps:
-
-1. User uploads image
-2. Image stored on IPFS via Pinata
-3. Image CID generated
-4. Metadata JSON created
-5. Metadata uploaded to IPFS
-6. Metadata URI stored on blockchain
-7. NFT references metadata permanently
+1. Select the ERC20 tab.
+2. Enter the Token Name.
+3. Enter the Token Symbol.
+4. Enter the Total Supply.
+5. Click **Create ERC20**.
+6. Wait for transaction confirmation.
+7. View token details.
+8. Add the token to MetaMask.
+9. View your created ERC20 tokens.
+10. Transfer ERC20 tokens to another wallet.
 
 ---
 
-# Testing
+## ERC721
 
-## ERC20 Testing
-
-* Create token
-* Verify transaction
-* Import token address into MetaMask
-* Check token balance
-
-## ERC721 Testing
-
-* Mint NFT
-* Verify ownership
-* Check token URI
-* Verify metadata on IPFS
-
-## ERC1155 Testing
-
-* Mint tokens
-* Verify token balance
-* Transfer tokens
-* Check metadata URI
+1. Select the ERC721 tab.
+2. Enter Collection Name.
+3. Enter Collection Symbol.
+4. Upload an NFT image.
+5. Click **Create NFT**.
+6. Wait for image upload to Pinata.
+7. Metadata is automatically generated.
+8. NFT is minted.
+9. View the NFT Gallery.
+10. Transfer NFTs using the Token ID.
+11. View the transaction on Hoodi Explorer.
 
 ---
 
-# Security Considerations
+## ERC1155
 
-* Never expose private keys.
-* Store Pinata JWT securely.
-* Verify contract addresses before deployment.
-* Use test networks before mainnet deployment.
+1. Select the ERC1155 tab.
+2. Enter Recipient Address.
+3. Enter Token ID.
+4. Enter Number of Copies.
+5. Upload an NFT image.
+6. Click **Mint ERC1155**.
+7. Wait for minting.
+8. View ERC1155 Gallery.
+9. Transfer copies using the Transfer section.
+10. Verify the transaction on Hoodi Explorer.
 
 ---
 
-# Future Enhancements
+# Application Workflow
 
-* NFT Marketplace Integration
-* NFT Transfer Dashboard
-* Burn Functionality
+```text
+                           Start
+                             │
+                             ▼
+                  Clone Repository
+                             │
+                             ▼
+                  Install Prerequisites
+                             │
+                             ▼
+                 Configure Environment
+                             │
+                             ▼
+                Configure MetaMask Network
+                             │
+                             ▼
+                  Open with Live Server
+                             │
+                             ▼
+                   Connect MetaMask Wallet
+                             │
+                             ▼
+                 Select Token Standard
+          ┌──────────────┬──────────────┬──────────────┐
+          │              │              │
+          ▼              ▼              ▼
+       ERC20         ERC721         ERC1155
+          │              │              │
+          │         Upload Image   Upload Image
+          │              │              │
+          │              ▼              ▼
+          │      Upload Metadata to IPFS
+          │              │
+          └──────────────┼──────────────┘
+                         ▼
+                 Create / Mint Token
+                         │
+                         ▼
+               Display Success Details
+                         │
+                         ▼
+             View Tokens / NFT Gallery
+                         │
+                         ▼
+                 Transfer Tokens/NFTs
+                         │
+                         ▼
+          Verify Transaction on Hoodi Explorer
+```
+
+---
+
+# Testing the Application
+
+To verify the application is working correctly:
+
+### ERC20
+
+* Connect MetaMask.
+* Create an ERC20 token.
+* View the created token.
+* Add it to MetaMask.
+* Transfer tokens to another account.
+
+### ERC721
+
+* Mint an NFT.
+* Verify the NFT appears in the gallery.
+* Transfer the NFT.
+* Verify ownership after transfer.
+* Open the Hoodi Explorer transaction.
+
+### ERC1155
+
+* Mint an ERC1155 NFT.
+* Mint additional copies using the same Token ID.
+* Verify balances.
+* Transfer NFT copies.
+* Verify the gallery updates correctly.
+* Open the Hoodi Explorer transaction.
+
+---
+
+# Additional Information
+
+* The application works only on the Ethereum Hoodi Testnet.
+* MetaMask must remain connected while performing transactions.
+* Users must have Hoodi Test ETH for gas fees.
+* NFT images and metadata are stored on IPFS using Pinata.
+* Blockchain transactions can be verified using Hoodi Explorer.
+
+---
+
+# Repository
+
+GitHub Repository
+
+```
+https://github.com/varshaprasadav/INTERNSHIP
+```
+
+Clone using HTTPS
+
+```bash
+git clone https://github.com/varshaprasadav/INTERNSHIP.git
+```
+
+Clone using SSH
+
+```bash
+git clone git@github.com:varshaprasadav/INTERNSHIP.git
+```
+
+---
+
+# Future Improvements
+
+* Burn ERC20 Tokens
+* Burn NFTs
 * Batch ERC1155 Minting
-* NFT Collection Management
-* Admin Dashboard
-* Multi-Chain Support
+* Multi-chain Support
+* Wallet Dashboard
+* Search and Filter Tokens
+* NFT Metadata Editing
 
 ---
 
 # Author
 
-Varsha Prasad A V
+**Varsha Prasad**
 
-Token Creator DApp using Solidity, IPFS, Pinata, MetaMask, Ethers.js, and Tailwind CSS.
+GitHub: https://github.com/varshaprasadav
+
+Repository: https://github.com/varshaprasadav/INTERNSHIP
