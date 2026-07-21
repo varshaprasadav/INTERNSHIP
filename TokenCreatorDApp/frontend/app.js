@@ -120,7 +120,7 @@ const uploadedImages = new Set();
 // LOCAL STORAGE
 // ==========================
 
-const ERC721_STORAGE_KEY =
+const ERC721_STORAGE_KEY=
     `erc721Gallery_${ERC721_ADDRESS}`;
 
 let nftGallery =
