@@ -639,7 +639,7 @@ Example:
 ```javascript
 const ERC20_FACTORY = "";
 
-const ERC721_FACTORY = "";
+const MyNFT = "";
 
 const ERC1155_FACTORY = "";
 ```
@@ -652,7 +652,7 @@ Example:
 const ERC20_FACTORY =
 "0x1234567890abcdef1234567890abcdef12345678";
 
-const ERC721_FACTORY =
+const MyNFT =
 "0xabcdef1234567890abcdef1234567890abcdef12";
 
 const ERC1155_FACTORY =
@@ -682,7 +682,7 @@ The browser automatically opens the application.
 Example URL:
 
 ```text
-http://127.0.0.1:5500/frontend/index.html
+http://127.0.0.1:5501/TokenCreatorDApp/frontend/index.html
 ```
 
 ---
