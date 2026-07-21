@@ -281,8 +281,8 @@ INTERNSHIP/
 ├── frontend/
 │   ├── index.html
 │   ├── app.js
-│   ├── abi.js
-│   ├── assets/
+│   
+│   
 │
 ├── package.json
 ├── .env
